@@ -1,11 +1,11 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Link, useLocation, Router as WouterRouter } from 'wouter';
-import { ArrowDown, ArrowRight, Check, ChevronDown, Menu, Moon, Plus, ShoppingBag, Sun, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, Check, ChevronDown, Heart, Menu, Moon, Plus, Search, ShoppingBag, Sun, X } from 'lucide-react';
 import xbloomPhoto from '@assets/image_1791649384537.png';
 import aidenPhoto from '@assets/image_1791649481086.png';
 import moccamasterPhoto from '@assets/image_1791649574028.png';
@@ -38,6 +38,13 @@ const bundles = [
   { id: 'bundle-daily', name: 'The Daily Brewer', regular: 140, price: 132, items: ['Fellow Aiden Precision Coffee Maker', 'Blend Caramel Candy', 'Ethiopia Konga'], note: 'A reliable daily ritual, with room to explore.' },
   { id: 'bundle-precision', name: 'The Precision Set', regular: 81.5, price: 75, items: ['Fellow Stagg EKG Electric Kettle Pro', 'Hario V60 Drip Scale and Timer', 'Brazil Samba'], note: 'The essentials for a deliberate pour-over.' },
 ];
+
+type Bundle = typeof bundles[number];
+type CatalogItem = Product | Bundle;
+type SearchEntry = { item: CatalogItem; imageKey: string; category: string; searchTerms: string };
+
+const catalogItems: CatalogItem[] = [...products, ...bundles];
+const catalogIds = new Set(catalogItems.map(item => item.id));
 
 const productPhotos: Record<string, string> = {
   'xbloom-photo': xbloomPhoto,
@@ -76,6 +83,9 @@ const copy = {
     remove: 'Remove', added: 'Added to your cart', bundleAdded: 'Bundle added to your cart',
     close: 'Close', quantity: 'Quantity', productDetails: 'Product details', roasted: 'Roasted in Kuwait by Speak Coffee Roaster',
     themeLight: 'Switch to light theme', themeDark: 'Switch to dark theme', language: 'العربية', menu: 'Open menu',
+    search: 'Search', searchPlaceholder: 'Search machines, beans, bundles...', clearSearch: 'Clear search', noSearchResults: 'No products found',
+    categoryMachineSearch: 'Machines & tools', categoryBeanSearch: 'Coffee beans', favorites: 'Favorites', noFavorites: 'No favorites yet',
+    favoriteAdd: 'Add to favorites', favoriteRemove: 'Remove from favorites',
     checkoutSuccess: 'Your selection is ready. Checkout is not enabled in this demo.',
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
     categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Speak Coffee Roaster. Find a coffee worth slowing down for.',
@@ -108,6 +118,9 @@ const copy = {
     remove: 'إزالة', added: 'أُضيف إلى سلتك', bundleAdded: 'أُضيفت المجموعة إلى سلتك',
     close: 'إغلاق', quantity: 'الكمية', productDetails: 'تفاصيل المنتج', roasted: 'تحميص Speak Coffee Roaster في الكويت',
     themeLight: 'التبديل إلى المظهر الفاتح', themeDark: 'التبديل إلى المظهر الداكن', language: 'English', menu: 'فتح القائمة',
+    search: 'بحث', searchPlaceholder: 'ابحث عن الأجهزة أو البن أو المجموعات...', clearSearch: 'مسح البحث', noSearchResults: 'لم يتم العثور على منتجات',
+    categoryMachineSearch: 'أجهزة وأدوات القهوة', categoryBeanSearch: 'حبوب القهوة', favorites: 'المفضلة', noFavorites: 'لا توجد عناصر في المفضلة بعد',
+    favoriteAdd: 'أضف إلى المفضلة', favoriteRemove: 'إزالة من المفضلة',
     checkoutSuccess: 'اختياراتك جاهزة. إتمام الطلب غير متاح في هذه التجربة.',
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
     categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Speak Coffee Roaster. اكتشف قهوة تستحق التمهل.',
@@ -133,6 +146,16 @@ function money(price: number) {
   return `${Number.isInteger(price) ? price.toFixed(0) : price.toFixed(1)} KWD`;
 }
 
+function catalogImageKey(item: CatalogItem) {
+  if ('image' in item) return item.image;
+  const featuredProduct = products.find(product => product.name === item.items[0]);
+  return featuredProduct?.image ?? 'machine';
+}
+
+function normalizeSearch(value: string) {
+  return value.toLocaleLowerCase().normalize('NFKC').replace(/[\u064B-\u065F\u0670]/g, '').trim();
+}
+
 function BrandMark({ className }: { className: string }) {
   return <svg className={className} viewBox="0 0 38 44" fill="none" aria-hidden="true">
       <path d="M7 5h24l-2.3 4H9.3L7 5Z" stroke="currentColor" strokeWidth="1.5"/>
@@ -148,21 +171,64 @@ function Logo() {
   </Link>;
 }
 
-function ProductIllustration({ product, compact = false }: { product: Product | CartItem; compact?: boolean }) {
+function ProductIllustration({ product, compact = false, children }: { product: Product | CartItem; compact?: boolean; children?: ReactNode }) {
   const image = product.image || 'machine';
   const photo = productPhotos[image];
   const hasPhoto = Boolean(photo);
   const blendsBackground = image === 'hario-photo' || image === 'bean-bag-photo';
-  return <div className={`product-visual${compact ? ' compact' : ''}${hasPhoto ? ' has-photo' : ''}`} aria-label={`${product.name} ${hasPhoto ? 'product photo' : 'illustrative product graphic'}`} role="img">
+  return <div className={`product-visual${compact ? ' compact' : ''}${hasPhoto ? ' has-photo' : ''}`}>
     <span className="visual-tag">{'category' in product && product.category === 'bean' || image === 'bag' ? 'Speak · Kuwait' : 'Brew / 01'}</span>
     {photo ? <img className={`product-photo${blendsBackground ? ' light-background' : ''}`} src={photo} alt="" aria-hidden="true" /> : <div className={`device ${image}`} aria-hidden="true" />}
+    {children}
   </div>;
 }
 
-function ProductCard({ product, t, language, onAdd, onDetails }: { product: Product; t: typeof copy.en; language: Language; onAdd: (product: Product) => void; onDetails: (product: Product) => void }) {
+function FavoriteToggle({ id, name, saved, t, onToggle, className = '' }: {
+  id: string; name: string; saved: boolean; t: typeof copy.en; onToggle: () => void; className?: string;
+}) {
+  return <button
+    type="button"
+    className={`favorite-button${saved ? ' saved' : ''}${className ? ` ${className}` : ''}`}
+    onClick={onToggle}
+    aria-label={`${saved ? t.favoriteRemove : t.favoriteAdd} ${name}`}
+    aria-pressed={saved}
+    data-testid={`button-favorite-${id}`}
+  ><Heart size={16} fill={saved ? 'currentColor' : 'none'} strokeWidth={1.8}/></button>;
+}
+
+function SearchResults({ entries, t, onAdd, id }: {
+  entries: SearchEntry[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; id: string;
+}) {
+  return <div className="search-results" id={id} role="region" aria-label={t.search}>
+    {entries.length === 0
+      ? <div className="search-no-results" role="status" data-testid="search-no-results">{t.noSearchResults}</div>
+      : <div className="search-result-list">{entries.map(entry => {
+        const photo = productPhotos[entry.imageKey];
+        const blend = entry.imageKey === 'hario-photo' || entry.imageKey === 'bean-bag-photo';
+        return <article className="search-result" key={entry.item.id} data-testid={`search-result-${entry.item.id}`}>
+          <div className="search-result-image">{photo
+            ? <img className={blend ? 'light-background' : ''} src={photo} alt="" aria-hidden="true"/>
+            : <ShoppingBag size={19} aria-hidden="true"/>}</div>
+          <div className="search-result-copy">
+            <small>{entry.category}</small>
+            <strong>{entry.item.name}</strong>
+            <span>{money(entry.item.price)}</span>
+          </div>
+          <button className="search-add-button" type="button" onClick={() => onAdd(entry.item)} data-testid={`button-search-add-${entry.item.id}`}>{t.add}<Plus size={13}/></button>
+        </article>;
+      })}</div>}
+  </div>;
+}
+
+function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onToggleFavorite }: {
+  product: Product; t: typeof copy.en; language: Language; onAdd: (product: Product) => void; onDetails: (product: Product) => void;
+  isFavorite: boolean; onToggleFavorite: () => void;
+}) {
   const localized = language === 'ar' ? arabicProductCopy[product.id] : undefined;
   return <article className="product-card" data-testid={`card-product-${product.id}`}>
-    <ProductIllustration product={product} />
+    <ProductIllustration product={product}>
+      <FavoriteToggle id={product.id} name={product.name} saved={isFavorite} t={t} onToggle={onToggleFavorite}/>
+    </ProductIllustration>
     <div className="product-info">
       <div className="product-kicker">{product.category === 'bean' ? t.localRoast : t.equipment}</div>
       <div className="product-title-line"><h3 className="product-title">{product.name}</h3><span className="product-price" data-testid={`text-price-${product.id}`}>{money(product.price)}</span></div>
@@ -175,13 +241,82 @@ function ProductCard({ product, t, language, onAdd, onDetails }: { product: Prod
   </article>;
 }
 
-function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, openCart }: {
-  t: typeof copy.en; language: Language; setLanguage: (l: Language) => void; theme: 'light' | 'dark'; toggleTheme: () => void; cartCount: number; openCart: () => void;
+function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favoriteCount, openCart, openFavorites, onAddItem }: {
+  t: typeof copy.en; language: Language; setLanguage: (l: Language) => void; theme: 'light' | 'dark'; toggleTheme: () => void;
+  cartCount: number; favoriteCount: number; openCart: () => void; openFavorites: () => void; onAddItem: (item: CatalogItem) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [location] = useLocation();
-  useEffect(() => { setMenuOpen(false); setCategoriesOpen(false); }, [location]);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchPanelRef = useRef<HTMLDivElement>(null);
+  const mobileSearchButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchEntries = useMemo(() => {
+    const query = normalizeSearch(searchQuery);
+    if (!query) return [];
+    const machineTerms = `${t.categoryMachineSearch} machine machines equipment brewer brewers coffee tools أجهزة آلة آلات معدات أدوات`;
+    const beanTerms = `${t.categoryBeanSearch} bean beans coffee roast roasted local حبوب البن بن قهوة محمصة`;
+    const bundleTerms = `${t.bundle} bundle bundles set sets مجموعات مجموعة باقة باقات`;
+    const entries: SearchEntry[] = [
+      ...products.map(item => ({
+        item,
+        imageKey: item.image,
+        category: item.category === 'machine' ? t.categoryMachineSearch : t.categoryBeanSearch,
+        searchTerms: item.category === 'machine' ? machineTerms : beanTerms,
+      })),
+      ...bundles.map(item => ({
+        item,
+        imageKey: catalogImageKey(item),
+        category: t.bundle,
+        searchTerms: bundleTerms,
+      })),
+    ];
+    return entries.filter(entry => normalizeSearch(`${entry.item.name} ${entry.category} ${entry.searchTerms}`).includes(query));
+  }, [searchQuery, t]);
+  useEffect(() => { setMenuOpen(false); setCategoriesOpen(false); setMobileSearchOpen(false); setSearchDropdownOpen(false); }, [location]);
+  useEffect(() => {
+    if (mobileSearchOpen) mobileSearchInputRef.current?.focus();
+  }, [mobileSearchOpen]);
+  useEffect(() => {
+    const closeDropdownOutside = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const insideSearch = desktopSearchRef.current?.contains(target)
+        || mobileSearchPanelRef.current?.contains(target)
+        || mobileSearchButtonRef.current?.contains(target);
+      if (!insideSearch) setSearchDropdownOpen(false);
+    };
+    document.addEventListener('pointerdown', closeDropdownOutside);
+    return () => document.removeEventListener('pointerdown', closeDropdownOutside);
+  }, []);
+  const updateSearch = (value: string) => {
+    setSearchQuery(value);
+    setSearchDropdownOpen(Boolean(value.trim()));
+  };
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchDropdownOpen(false);
+  };
+  const addSearchResult = (item: CatalogItem) => {
+    onAddItem(item);
+    clearSearch();
+    setMobileSearchOpen(false);
+  };
+  const toggleMobileSearch = () => {
+    if (mobileSearchOpen) {
+      setMobileSearchOpen(false);
+      setSearchDropdownOpen(false);
+    } else {
+      setMenuOpen(false);
+      setMobileSearchOpen(true);
+      setSearchDropdownOpen(Boolean(searchQuery.trim()));
+    }
+  };
+  const showResults = searchDropdownOpen && Boolean(searchQuery.trim());
   return <>
     <div className="top-strip">{t.announcement}</div>
     <header className="nav-shell">
@@ -198,15 +333,61 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, openC
           <Link href="/#bundles" data-testid="link-bundles">{t.navBundles}</Link>
           <Link href="/#contact" data-testid="link-contact">{t.navContact}</Link>
         </nav>
+        <div className="desktop-search" ref={desktopSearchRef}>
+          <div className="search-field">
+            <Search size={15} aria-hidden="true"/>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={event => updateSearch(event.currentTarget.value)}
+              onFocus={() => { if (searchQuery.trim()) setSearchDropdownOpen(true); }}
+              placeholder={t.searchPlaceholder}
+              aria-label={t.search}
+              aria-controls="desktop-search-results"
+              aria-expanded={showResults && !mobileSearchOpen}
+              data-testid="input-navbar-search"
+            />
+            {searchQuery && <button type="button" className="search-clear" onClick={clearSearch} aria-label={t.clearSearch} data-testid="button-clear-search"><X size={14}/></button>}
+          </div>
+          {showResults && !mobileSearchOpen && <SearchResults id="desktop-search-results" entries={searchEntries} t={t} onAdd={addSearchResult}/>}
+        </div>
         <div className="nav-actions">
           <button className="icon-button" onClick={toggleTheme} aria-label={theme === 'light' ? t.themeDark : t.themeLight} data-testid="button-theme">
             {theme === 'light' ? <Moon size={16}/> : <Sun size={16}/>}
           </button>
           <button className="icon-button" onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')} aria-label={`Language: ${language === 'en' ? 'Arabic' : 'English'}`} data-testid="button-language"><span style={{fontSize:10,fontWeight:600}}>{language === 'en' ? 'ع' : 'EN'}</span></button>
+          <button className="icon-button mobile-search-button" onClick={toggleMobileSearch} aria-label={t.search} aria-expanded={mobileSearchOpen} ref={mobileSearchButtonRef} data-testid="button-mobile-search"><Search size={16}/></button>
+          <button className="icon-button favorites-nav-button" onClick={openFavorites} aria-label={`${t.favorites} (${favoriteCount})`} data-testid="button-favorites">
+            <Heart size={16} strokeWidth={1.8}/><span className="favorite-count" data-testid="text-favorite-count">{favoriteCount.toLocaleString(language === 'ar' ? 'ar-KW' : 'en-US')}</span>
+          </button>
           <button className="icon-button" onClick={openCart} aria-label={t.cart} data-testid="button-cart"><ShoppingBag size={16}/>{cartCount > 0 && <span key={cartCount} className="cart-count" data-testid="text-cart-count">{cartCount}</span>}</button>
-          <button className="icon-button mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label={t.menu} aria-expanded={menuOpen} data-testid="button-mobile-menu">{menuOpen ? <X size={17}/> : <Menu size={17}/>}</button>
+          <button className="icon-button mobile-menu" onClick={() => { setMobileSearchOpen(false); setSearchDropdownOpen(false); setMenuOpen(!menuOpen); }} aria-label={t.menu} aria-expanded={menuOpen} data-testid="button-mobile-menu">{menuOpen ? <X size={17}/> : <Menu size={17}/>}</button>
         </div>
       </div>
+      {mobileSearchOpen && <div className="mobile-search-panel" ref={mobileSearchPanelRef}>
+        <div className="container-wide mobile-search-inner">
+          <div className="mobile-search-row">
+            <div className="search-field">
+              <Search size={15} aria-hidden="true"/>
+              <input
+                ref={mobileSearchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={event => updateSearch(event.currentTarget.value)}
+                onFocus={() => { if (searchQuery.trim()) setSearchDropdownOpen(true); }}
+                placeholder={t.searchPlaceholder}
+                aria-label={t.search}
+                aria-controls="mobile-search-results"
+                aria-expanded={showResults && mobileSearchOpen}
+                data-testid="input-navbar-search-mobile"
+              />
+              {searchQuery && <button type="button" className="search-clear" onClick={clearSearch} aria-label={t.clearSearch} data-testid="button-clear-search-mobile"><X size={14}/></button>}
+            </div>
+            <button className="icon-button mobile-search-close" onClick={toggleMobileSearch} aria-label={t.close} data-testid="button-close-mobile-search"><X size={16}/></button>
+          </div>
+          {showResults && <SearchResults id="mobile-search-results" entries={searchEntries} t={t} onAdd={addSearchResult}/>}
+        </div>
+      </div>}
       {menuOpen && <nav className="mobile-nav" aria-label="Mobile navigation">
         <button onClick={() => setCategoriesOpen(!categoriesOpen)} data-testid="button-mobile-categories">{t.categories} <ChevronDown size={13}/></button>
         {categoriesOpen && <><Link href="/machines" data-testid="link-mobile-machines">{t.navMachines}</Link><Link href="/beans" data-testid="link-mobile-beans">{t.navBeans}</Link></>}
@@ -261,11 +442,16 @@ function Ticker({ t }: { t: typeof copy.en }) {
   </span>)}</div></div>;
 }
 
-function BundleSection({ t, language, onAdd }: { t: typeof copy.en; language: Language; onAdd: (bundle: typeof bundles[number]) => void }) {
+function BundleSection({ t, language, onAdd, favoriteIds, onToggleFavorite }: {
+  t: typeof copy.en; language: Language; onAdd: (bundle: Bundle) => void; favoriteIds: string[]; onToggleFavorite: (item: CatalogItem) => void;
+}) {
   return <section className="bundles-section" id="bundles"><div className="container-wide">
     <div className="section-head"><div><div className="eyebrow">{t.bundlesTag}</div><h2>{t.bundlesTitle}</h2></div><p className="section-intro">{t.bundlesIntro}</p></div>
     <div className="bundle-grid">{bundles.map((bundle, index) => <article className="bundle-card" key={bundle.id} data-testid={`card-${bundle.id}`}>
-      <span className="bundle-num">BL / SET 0{index + 1}</span><h3>{bundle.name}</h3><p>{language === 'ar' ? ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] : bundle.note}</p>
+      <div className="bundle-card-head"><span className="bundle-num">BL / SET 0{index + 1}</span>
+        <FavoriteToggle id={bundle.id} name={bundle.name} saved={favoriteIds.includes(bundle.id)} t={t} onToggle={() => onToggleFavorite(bundle)}/>
+      </div>
+      <h3>{bundle.name}</h3><p>{language === 'ar' ? ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] : bundle.note}</p>
       <ul className="bundle-items" aria-label={t.bundleNote}>{bundle.items.map(item => <li key={item}>{item}</li>)}</ul>
       <div className="bundle-bottom"><div className="bundle-price"><small>{money(bundle.regular)}</small><strong>{money(bundle.price)}</strong><span>{t.save} {money(bundle.regular - bundle.price)}</span></div>
         <button className="add-button" onClick={() => onAdd(bundle)} data-testid={`button-add-${bundle.id}`}>{t.addBundle}</button></div>
@@ -309,6 +495,46 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }:
   </>;
 }
 
+function FavoritesDrawer({ open, close, items, t, onAdd, onRemove }: {
+  open: boolean; close: () => void; items: CatalogItem[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onRemove: (id: string) => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, close]);
+  return <>
+    <div className={`drawer-backdrop${open ? ' open' : ''}`} onClick={close} aria-hidden={!open}/>
+    <aside className={`favorites-drawer${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.favorites} aria-hidden={!open}>
+      <div className="drawer-head">
+        <h2>{t.favorites} <span style={{fontSize:14,opacity:.55}}>({items.length})</span></h2>
+        <button className="icon-button" onClick={close} aria-label={t.close} data-testid="button-close-favorites"><X size={17}/></button>
+      </div>
+      {items.length === 0
+        ? <div className="empty-cart"><div><Heart size={26} strokeWidth={1.2}/><h3>{t.noFavorites}</h3></div></div>
+        : <div className="favorites-items">{items.map(item => {
+          const imageKey = catalogImageKey(item);
+          const photo = productPhotos[imageKey];
+          const blend = imageKey === 'hario-photo' || imageKey === 'bean-bag-photo';
+          return <article className="favorites-row" key={item.id} data-testid={`row-favorite-${item.id}`}>
+            <div className="favorite-thumb">{photo
+              ? <img className={blend ? 'light-background' : ''} src={photo} alt="" aria-hidden="true"/>
+              : <ShoppingBag size={20} aria-hidden="true"/>}</div>
+            <div className="favorite-row-content">
+              <h3>{item.name}</h3>
+              <small>{money(item.price)}</small>
+              <div className="favorite-row-actions">
+                <button className="add-button" onClick={() => onAdd(item)} data-testid={`button-favorite-add-${item.id}`}>{t.add}</button>
+                <button className="remove-button favorite-remove" onClick={() => onRemove(item.id)} aria-label={`${t.favoriteRemove} ${item.name}`} data-testid={`button-favorite-remove-${item.id}`}><X size={14}/><span>{t.remove}</span></button>
+              </div>
+            </div>
+          </article>;
+        })}</div>}
+    </aside>
+  </>;
+}
+
 function ProductModal({ product, t, language, close, onAdd }: { product: Product | null; t: typeof copy.en; language: Language; close: () => void; onAdd: (product: Product) => void }) {
   useEffect(() => {
     if (!product) return;
@@ -336,18 +562,34 @@ function Storefront() {
   const [cart, setCart] = useState<CartItem[]>(() => {
     try { return JSON.parse(localStorage.getItem('brew-cart') || '[]') as CartItem[]; } catch { return []; }
   });
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem('brew-favorites') || '[]');
+      return Array.isArray(stored)
+        ? [...new Set(stored.filter((id): id is string => typeof id === 'string' && catalogIds.has(id)))]
+        : [];
+    } catch { return []; }
+  });
   const [cartOpen, setCartOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'machine' | 'bean'>('all');
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const [toast, setToast] = useState('');
   const t = copy[language];
   const routeKind = location.startsWith('/machines') ? 'machine' : location.startsWith('/beans') ? 'bean' : 'all';
   const filteredProducts = useMemo(() => products.filter(product => routeKind === 'all' ? activeTab === 'all' || product.category === activeTab : product.category === routeKind), [routeKind, activeTab]);
+  const favoriteItems = useMemo(
+    () => favoriteIds.map(id => catalogItems.find(item => item.id === id)).filter((item): item is CatalogItem => Boolean(item)),
+    [favoriteIds],
+  );
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     localStorage.setItem('brew-cart', JSON.stringify(cart));
   }, [cart]);
+  useEffect(() => {
+    localStorage.setItem('brew-favorites', JSON.stringify(favoriteIds));
+  }, [favoriteIds]);
   useEffect(() => {
     localStorage.setItem('brew-theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -363,7 +605,7 @@ function Storefront() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const addItem = (item: Product | typeof bundles[number]) => {
+  const addItem = (item: CatalogItem) => {
     const isBundle = 'items' in item;
     const cartItem: CartItem = isBundle
       ? { id: item.id, name: item.name, price: item.price, image: 'machine', quantity: 1, isBundle: true }
@@ -374,10 +616,17 @@ function Storefront() {
     });
     setToast(isBundle ? t.bundleAdded : t.added);
   };
+  const toggleFavorite = (item: CatalogItem) => {
+    setFavoriteIds(old => old.includes(item.id) ? old.filter(id => id !== item.id) : [...old, item.id]);
+  };
   const adjustQuantity = (id: string, delta: number) => setCart(old => old.flatMap(item => item.id === id ? (item.quantity + delta <= 0 ? [] : [{ ...item, quantity: item.quantity + delta }]) : [item]));
   const removeItem = (id: string) => setCart(old => old.filter(item => item.id !== id));
   return <div className="page-shell" data-testid="storefront">
-    <Header t={t} language={language} setLanguage={setLanguageState} theme={theme} toggleTheme={() => setThemeState(theme === 'light' ? 'dark' : 'light')} cartCount={cartCount} openCart={() => setCartOpen(true)}/>
+    <Header t={t} language={language} setLanguage={setLanguageState} theme={theme} toggleTheme={() => setThemeState(theme === 'light' ? 'dark' : 'light')}
+      cartCount={cartCount} favoriteCount={favoriteIds.length}
+      openCart={() => { setFavoritesOpen(false); setCartOpen(true); }}
+      openFavorites={() => { setCartOpen(false); setFavoritesOpen(true); }}
+      onAddItem={addItem}/>
     {routeKind === 'all' && <><Hero t={t}/><Ticker t={t}/></>}
     <main className="container-wide section" id="products">
       {routeKind !== 'all' && <div className="section-head"><div><div className="eyebrow">{routeKind === 'machine' ? t.categoryMachines : t.categoryBeans}</div><h2>{routeKind === 'machine' ? t.navMachines : t.navBeans}</h2></div><p className="section-intro">{routeKind === 'machine' ? t.categoryMachineCopy : t.categoryBeansCopy}</p></div>}
@@ -385,12 +634,14 @@ function Storefront() {
       {routeKind === 'all' && <div className="tabs" role="tablist" aria-label={t.productsTitle}>
         {(['all', 'machine', 'bean'] as const).map(tab => <button key={tab} role="tab" aria-selected={activeTab === tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)} data-testid={`tab-${tab}`}>{tab === 'all' ? t.all : tab === 'machine' ? t.machines : t.beans}</button>)}
       </div>}
-      {filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={setModalProduct}/>)}</div> : <p>{t.noProducts}</p>}
+      {filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={setModalProduct}
+        isFavorite={favoriteIds.includes(product.id)} onToggleFavorite={() => toggleFavorite(product)}/>)}</div> : <p>{t.noProducts}</p>}
     </main>
-    {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem}/><OriginSection t={t}/></>}
+    {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}/><OriginSection t={t}/></>}
     <Footer t={t}/>
     <a className="whatsapp" href="https://wa.me/96598858879" target="_blank" rel="noreferrer" aria-label="Contact Brew Logic on WhatsApp" data-testid="link-floating-whatsapp"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L3 20l1.2-4.8A8.2 8.2 0 1 1 20.2 11.7Z" stroke="currentColor" strokeWidth="1.6"/><path d="M8.2 8.1c.3-.5.5-.5.8-.5h.5c.2 0 .4.1.5.5l.7 1.7c.1.3 0 .5-.2.7l-.5.6c-.2.2-.2.4-.1.6.4.8 1.3 1.6 2.2 2 .2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .3-.2 1.2-.8 1.5-.6.4-1.3.5-2.1.3-.8-.2-1.9-.7-3.1-1.8-1.2-1.1-2-2.4-2.2-3.3-.2-.9 0-1.6.3-2.1Z" fill="currentColor"/></svg></a>
     <CartDrawer open={cartOpen} close={() => setCartOpen(false)} items={cart} t={t} onQuantity={adjustQuantity} onRemove={removeItem} onCheckout={() => setToast(t.checkoutSuccess)}/>
+    <FavoritesDrawer open={favoritesOpen} close={() => setFavoritesOpen(false)} items={favoriteItems} t={t} onAdd={addItem} onRemove={id => setFavoriteIds(old => old.filter(itemId => itemId !== id))}/>
     <ProductModal product={modalProduct} t={t} language={language} close={() => setModalProduct(null)} onAdd={addItem}/>
     <div className={`toast-message${toast ? ' show' : ''}`} role="status" aria-live="polite" data-testid="status-toast">{toast}</div>
   </div>;
