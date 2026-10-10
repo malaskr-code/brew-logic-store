@@ -68,7 +68,7 @@ const copy = {
     productsTag: 'The working collection', productsTitle: 'Find your flow.',
     productsIntro: 'Good tools make the process clearer. Start with the part of your brew you want to understand better.',
     all: 'Everything', machines: 'Machines', beans: 'Beans', how: 'How it works', details: 'Details', add: 'Add to cart',
-    back: 'Back', origin: 'Origin', bagSize: 'Bag size', roastedBy: 'Roasted in Kuwait by Speak Coffee Roaster',
+    back: 'Back', origin: 'Origin', bagSize: 'Bag size', roaster: 'Roaster', roastedBy: 'Roasted in Kuwait by Speak Coffee Roaster',
     originUnlisted: 'Specific country not listed', description: 'Description', regularPrice: 'Regular price',
     bundlePrice: 'Bundle price', includedItems: 'Included items', price: 'Price', savings: 'You save',
     bundlesTag: 'Made to work together', bundlesTitle: 'A good place to begin.',
@@ -106,7 +106,7 @@ const copy = {
     productsTag: 'مجموعة الأدوات', productsTitle: 'اكتشف طريقتك.',
     productsIntro: 'الأدوات الجيدة تجعل التحضير أوضح. ابدأ بالجزء الذي ترغب في فهمه أكثر.',
     all: 'الكل', machines: 'الأجهزة', beans: 'البن', how: 'كيف تعمل', details: 'التفاصيل', add: 'أضف إلى السلة',
-    back: 'رجوع', origin: 'المنشأ', bagSize: 'حجم الكيس', roastedBy: 'تحميص Speak Coffee Roaster في الكويت',
+    back: 'رجوع', origin: 'المنشأ', bagSize: 'حجم الكيس', roaster: 'المحمصة', roastedBy: 'تحميص Speak Coffee Roaster في الكويت',
     originUnlisted: 'لم يُذكر بلد المنشأ', description: 'الوصف', regularPrice: 'السعر الأصلي',
     bundlePrice: 'سعر المجموعة', includedItems: 'محتويات المجموعة', price: 'السعر', savings: 'وفّرت',
     bundlesTag: 'اختيارات تكمل بعضها', bundlesTitle: 'بداية موفقة.',
@@ -672,7 +672,7 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
         {!isBundle && item.category === 'bean' && <dl className="detail-facts">
           <div><dt>{t.origin}</dt><dd>{origin}</dd></div>
           <div><dt>{t.bagSize}</dt><dd>{language === 'ar' ? '٢٥٠ غرام' : '250g'}</dd></div>
-          <div><dt>{t.roasted}</dt><dd>{t.roastedBy}</dd></div>
+          <div><dt>{t.roaster}</dt><dd>{t.roastedBy}</dd></div>
         </dl>}
         {isBundle && <section className="detail-included">
           <h2>{t.includedItems}</h2>
@@ -710,9 +710,13 @@ function Storefront() {
   const [cartOpen, setCartOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'machine' | 'bean'>('all');
-  const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const [toast, setToast] = useState('');
   const t = copy[language];
+  const isDetailRoute = location.startsWith('/product/');
+  const detailId = isDetailRoute ? location.slice('/product/'.length) : '';
+  const detailItem = catalogItems.find(item => item.id === detailId);
+  const storedBackPath = sessionGet(DETAIL_BACK_PATH_KEY);
+  const backHref = storedBackPath?.startsWith('/') && !storedBackPath.startsWith('//') && storedBackPath !== location ? storedBackPath : '/';
   const routeKind = location.startsWith('/machines') ? 'machine' : location.startsWith('/beans') ? 'bean' : 'all';
   const filteredProducts = useMemo(() => products.filter(product => routeKind === 'all' ? activeTab === 'all' || product.category === activeTab : product.category === routeKind), [routeKind, activeTab]);
   const favoriteItems = useMemo(
@@ -741,17 +745,45 @@ function Storefront() {
     const timer = window.setTimeout(() => setToast(''), 2400);
     return () => window.clearTimeout(timer);
   }, [toast]);
+  useEffect(() => {
+    if (isDetailRoute) {
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (sessionGet(DETAIL_BACK_PATH_KEY) === location) {
+      const previousScroll = Number(sessionGet(DETAIL_BACK_SCROLL_KEY) || '0');
+      sessionRemove(DETAIL_BACK_PATH_KEY);
+      sessionRemove(DETAIL_BACK_SCROLL_KEY);
+      const frame = window.requestAnimationFrame(() => window.scrollTo(0, previousScroll));
+      return () => window.cancelAnimationFrame(frame);
+    }
+    return undefined;
+  }, [location, isDetailRoute]);
+  useEffect(() => {
+    if (location !== '/') return;
+    const sectionId = sessionGet(PENDING_SECTION_KEY);
+    if (sectionId !== 'bundles' && sectionId !== 'contact') return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      sessionRemove(PENDING_SECTION_KEY);
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [location]);
 
-  const addItem = (item: CatalogItem) => {
+  const addItem = (item: CatalogItem, quantity = 1) => {
     const isBundle = 'items' in item;
     const cartItem: CartItem = isBundle
-      ? { id: item.id, name: item.name, price: item.price, image: 'machine', quantity: 1, isBundle: true }
-      : { id: item.id, name: item.name, price: item.price, image: item.image, quantity: 1 };
+      ? { id: item.id, name: item.name, price: item.price, image: 'machine', quantity, isBundle: true }
+      : { id: item.id, name: item.name, price: item.price, image: item.image, quantity };
     setCart(old => {
       const exists = old.find(entry => entry.id === cartItem.id);
-      return exists ? old.map(entry => entry.id === cartItem.id ? { ...entry, quantity: entry.quantity + 1 } : entry) : [...old, cartItem];
+      return exists ? old.map(entry => entry.id === cartItem.id ? { ...entry, quantity: entry.quantity + quantity } : entry) : [...old, cartItem];
     });
     setToast(isBundle ? t.bundleAdded : t.added);
+  };
+  const rememberDetailReturn = () => {
+    sessionSet(DETAIL_BACK_PATH_KEY, location);
+    sessionSet(DETAIL_BACK_SCROLL_KEY, String(window.scrollY));
   };
   const toggleFavorite = (item: CatalogItem) => {
     setFavoriteIds(old => old.includes(item.id) ? old.filter(id => id !== item.id) : [...old, item.id]);
@@ -763,7 +795,12 @@ function Storefront() {
       cartCount={cartCount} favoriteCount={favoriteIds.length}
       openCart={() => { setFavoritesOpen(false); setCartOpen(true); }}
       openFavorites={() => { setCartOpen(false); setFavoritesOpen(true); }}
-      onAddItem={addItem}/>
+      onAddItem={addItem} onNavigateToDetail={rememberDetailReturn}/>
+    {isDetailRoute ? detailItem
+      ? <ProductDetailPage item={detailItem} t={t} language={language} backHref={backHref}
+        isFavorite={favoriteIds.includes(detailItem.id)} onToggleFavorite={() => toggleFavorite(detailItem)} onAdd={addItem}/>
+      : <NotFound/>
+      : <>
     {routeKind === 'all' && <><Hero t={t}/><Ticker t={t}/></>}
     <main className="container-wide section" id="products">
       {routeKind !== 'all' && <div className="section-head"><div><div className="eyebrow">{routeKind === 'machine' ? t.categoryMachines : t.categoryBeans}</div><h2>{routeKind === 'machine' ? t.navMachines : t.navBeans}</h2></div><p className="section-intro">{routeKind === 'machine' ? t.categoryMachineCopy : t.categoryBeansCopy}</p></div>}
@@ -771,15 +808,15 @@ function Storefront() {
       {routeKind === 'all' && <div className="tabs" role="tablist" aria-label={t.productsTitle}>
         {(['all', 'machine', 'bean'] as const).map(tab => <button key={tab} role="tab" aria-selected={activeTab === tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)} data-testid={`tab-${tab}`}>{tab === 'all' ? t.all : tab === 'machine' ? t.machines : t.beans}</button>)}
       </div>}
-      {filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={setModalProduct}
+      {filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn}
         isFavorite={favoriteIds.includes(product.id)} onToggleFavorite={() => toggleFavorite(product)}/>)}</div> : <p>{t.noProducts}</p>}
     </main>
-    {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}/><OriginSection t={t}/></>}
+    {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}/><OriginSection t={t}/></>}
+    </>}
     <Footer t={t}/>
     <a className="whatsapp" href="https://wa.me/96598858879" target="_blank" rel="noreferrer" aria-label="Contact Brew Logic on WhatsApp" data-testid="link-floating-whatsapp"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L3 20l1.2-4.8A8.2 8.2 0 1 1 20.2 11.7Z" stroke="currentColor" strokeWidth="1.6"/><path d="M8.2 8.1c.3-.5.5-.5.8-.5h.5c.2 0 .4.1.5.5l.7 1.7c.1.3 0 .5-.2.7l-.5.6c-.2.2-.2.4-.1.6.4.8 1.3 1.6 2.2 2 .2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .3-.2 1.2-.8 1.5-.6.4-1.3.5-2.1.3-.8-.2-1.9-.7-3.1-1.8-1.2-1.1-2-2.4-2.2-3.3-.2-.9 0-1.6.3-2.1Z" fill="currentColor"/></svg></a>
     <CartDrawer open={cartOpen} close={() => setCartOpen(false)} items={cart} t={t} onQuantity={adjustQuantity} onRemove={removeItem} onCheckout={() => setToast(t.checkoutSuccess)}/>
     <FavoritesDrawer open={favoritesOpen} close={() => setFavoritesOpen(false)} items={favoriteItems} t={t} onAdd={addItem} onRemove={id => setFavoriteIds(old => old.filter(itemId => itemId !== id))}/>
-    <ProductModal product={modalProduct} t={t} language={language} close={() => setModalProduct(null)} onAdd={addItem}/>
     <div className={`toast-message${toast ? ' show' : ''}`} role="status" aria-live="polite" data-testid="status-toast">{toast}</div>
   </div>;
 }
@@ -790,6 +827,7 @@ function Router() {
       <Route path="/" component={Storefront}/>
       <Route path="/machines" component={Storefront}/>
       <Route path="/beans" component={Storefront}/>
+      <Route path="/product/:id" component={Storefront}/>
       <Route component={NotFound}/>
     </Switch>
   </RoutedErrorBoundary>;
