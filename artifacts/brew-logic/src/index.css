@@ -405,6 +405,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .product-visual { height:220px;position:relative;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 66%,var(--surface));overflow:hidden; }
 .product-visual:before { content:"";position:absolute;width:172px;height:172px;border:1px solid var(--line);border-radius:50%; }
 .visual-tag { position:absolute;top:14px;left:14px;font:500 9px 'Inter';letter-spacing:.12em;text-transform:uppercase;opacity:.53; }
+.product-visual.has-photo .visual-tag { z-index:2; }
+.product-photo { position:relative;z-index:1;width:100%;height:100%;object-fit:contain; }
 .device { position:relative;z-index:1;filter:drop-shadow(0 10px 8px #2b1d1418); }
 .device.machine { width:90px;height:135px;background:linear-gradient(90deg,#bbb7ac,#efebe1 28%,#ccc8bd 70%,#a5a398);border:1px solid #908e83;border-radius:10px 10px 6px 6px; }
 .device.machine:before { content:"";position:absolute;top:12px;left:13px;width:62px;height:43px;background:#2b3027;border-radius:4px;box-shadow:inset 0 0 0 2px #dad5c8; }

@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Link, useLocation, Router as WouterRouter } from 'wouter';
 import { ArrowDown, ArrowRight, Check, ChevronDown, Menu, Moon, Plus, ShoppingBag, Sun, X } from 'lucide-react';
+import xbloomPhoto from '@assets/image_1791649384537.png';
 
 type Language = 'en' | 'ar';
 type Product = { id: string; name: string; price: number; category: 'machine' | 'bean'; image: string; description: string; why: string; origin?: string };
@@ -14,7 +15,7 @@ type CartItem = { id: string; name: string; price: number; image: string; quanti
 const queryClient = new QueryClient();
 
 const products: Product[] = [
-  { id: 'xbloom', name: 'xBloom Studio', price: 199, category: 'machine', image: 'machine', description: 'A complete pour-over system, tuned to your recipe.', why: 'It grinds, weighs, and pours following a programmed recipe, so every variable has a place.' },
+  { id: 'xbloom', name: 'xBloom Studio', price: 199, category: 'machine', image: 'xbloom-photo', description: 'A complete pour-over system, tuned to your recipe.', why: 'It grinds, weighs, and pours following a programmed recipe, so every variable has a place.' },
   { id: 'fellow-aiden', name: 'Fellow Aiden Precision Coffee Maker', price: 129, category: 'machine', image: 'tall', description: 'Precision brewing, with the ease of a morning button.', why: 'It controls water temperature and timing for each brew stage, bringing repeatability to batch coffee.' },
   { id: 'moccamaster', name: 'Moccamaster 10-Cup Coffee Maker', price: 100, category: 'machine', image: 'machine', description: 'A considered classic for cups shared around the table.', why: 'A copper heating element maintains brew temperature for a steady, balanced extraction.' },
   { id: 'eureka-filtro', name: 'Eureka Filtro grinder', price: 89, category: 'machine', image: 'grinder', description: 'A dedicated filter grinder with a quietly capable motor.', why: 'Flat steel burrs produce even grounds across the range, helping your coffee taste clear and composed.' },
@@ -129,9 +130,10 @@ function Logo() {
 
 function ProductIllustration({ product, compact = false }: { product: Product | CartItem; compact?: boolean }) {
   const image = product.image || 'machine';
-  return <div className={`product-visual${compact ? ' compact' : ''}`} aria-label={`${product.name} illustrative product graphic`} role="img">
+  const hasPhoto = image === 'xbloom-photo';
+  return <div className={`product-visual${compact ? ' compact' : ''}${hasPhoto ? ' has-photo' : ''}`} aria-label={`${product.name} ${hasPhoto ? 'product photo' : 'illustrative product graphic'}`} role="img">
     <span className="visual-tag">{'category' in product && product.category === 'bean' || image === 'bag' ? 'Speak · Kuwait' : 'Brew / 01'}</span>
-    <div className={`device ${image}`} aria-hidden="true" />
+    {hasPhoto ? <img className="product-photo" src={xbloomPhoto} alt="" aria-hidden="true" /> : <div className={`device ${image}`} aria-hidden="true" />}
   </div>;
 }
 
