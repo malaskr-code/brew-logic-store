@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -719,4 +719,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .brand-mark { width:22px; height:30px; }
   .nav-actions { gap:2px; }
   .nav-actions .icon-button { width:29px; min-width:29px; height:29px; }
+}
+
+/* Hero typography: a more editorial display line with clearer supporting copy */
+.hero-copy .eyebrow { gap:12px; font-size:11px; letter-spacing:.2em; }
+.hero h1 { max-width:660px; margin:28px 0 25px; font-size:clamp(56px,7.9vw,112px); line-height:.96; letter-spacing:-.075em; }
+.hero h1 em { display:inline-block; font:italic 400 1.04em/.94 'DM Serif Display',Georgia,serif; letter-spacing:-.04em; }
+.hero-text { max-width:435px; margin:0 0 32px; padding-inline-start:15px; border-inline-start:2px solid color-mix(in srgb,var(--olive) 68%,transparent); font:400 15px/1.8 'Inter',sans-serif; opacity:.8; }
+.hero-note { margin-top:32px; font-size:11px; letter-spacing:.035em; }
+[dir="rtl"] .hero h1 em { font-family:'IBM Plex Sans Arabic',sans-serif; font-style:normal; font-weight:600; letter-spacing:0; }
+[dir="rtl"] .hero-text { font-family:'IBM Plex Sans Arabic',sans-serif; }
+@media(max-width:640px) {
+  .hero-copy .eyebrow { font-size:9px; letter-spacing:.15em; }
+  .hero h1 { margin:20px 0 18px; font-size:clamp(53px,13vw,76px); line-height:1.02; letter-spacing:-.075em; }
+  .hero h1 em { font-size:1.02em; }
+  .hero-text { max-width:100%; margin-bottom:25px; padding-inline-start:12px; font-size:13px; line-height:1.78; }
+  .hero-note { margin-top:24px; font-size:10px; }
 }
