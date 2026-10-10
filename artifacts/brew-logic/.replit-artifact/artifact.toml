@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Brew Logic"
+description = "A responsive coffee equipment and beans storefront for Kuwait, with product category pages, curated bundles, a persistent cart, and Arabic/English plus light/dark modes. Frontend only; no login, database, or payment processing."
+version = "1.0.0"
+id = "artifacts/brew-logic"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19233
+
+[services.development]
+run = "pnpm --filter @workspace/brew-logic run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/brew-logic", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/brew-logic/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19233"
+BASE_PATH = "/"
