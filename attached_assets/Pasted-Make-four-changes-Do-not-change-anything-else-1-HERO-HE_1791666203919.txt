@@ -1,0 +1,63 @@
+Make four changes. Do not change anything else.
+
+1. HERO HEADLINE
+- Make "Engineer your cup." smaller and more
+  refined. Use Inter at weight 600, about half
+  the current size: around 56px on desktop and
+  36px on mobile.
+- Keep it on two lines with "your cup." in
+  olive. Use normal letter spacing.
+- Apply the same size reduction to the Arabic
+  headline.
+
+2. HERO LOGO
+- Remove the two circles around the Brew Logic
+  logo on the right side of the hero.
+- Keep the logo itself in that space and make
+  it about 30% larger so the area does not
+  look empty.
+
+3. PRODUCT DETAIL PAGE
+- Clicking a product card's image or name, or
+  its Details link, opens a detail page for
+  that product at /product/[id].
+- The Add to Cart button and the heart icon on
+  the card must keep working without opening
+  the detail page.
+- The detail page shows: a large full product
+  image, name, category, price in KWD, the
+  "How it works" line, and a longer description
+  of 3 to 4 sentences.
+- For machines, the description explains the
+  engineering behind the product in plain
+  language. For beans, it states the origin,
+  the 250g bag size, and that Speak Coffee
+  Roaster roasts them in Kuwait. Do not invent
+  tasting notes or technical specs.
+- Add a quantity selector, an Add to Cart
+  button, and a favorite heart that stays in
+  sync with the favorites list.
+- Add a Back link to the previous page.
+- Bundles get a detail page too, listing the
+  included items, the regular price crossed
+  out, the bundle price, and the savings.
+- Search results also open the detail page
+  when clicked.
+- The detail page works in light and dark
+  mode and in Arabic with RTL layout. The
+  navbar, cart, and favorites work on it.
+
+4. FIX NAVBAR LINKS
+- The Bundles and Contact links in the navbar
+  do nothing when clicked. Fix both.
+- Bundles scrolls smoothly to the Bundles
+  section on the home page.
+- Contact scrolls smoothly to the contact
+  section in the footer.
+- From any other page (Machines, Beans, or a
+  product detail page), each link first opens
+  the home page and then scrolls to its
+  section.
+- Offset the scroll so the fixed navbar does
+  not cover the section heading.
+- Both links work on mobile and in Arabic.

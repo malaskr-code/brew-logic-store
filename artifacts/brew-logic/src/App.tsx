@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Link, useLocation, Router as WouterRouter } from 'wouter';
-import { ArrowDown, ArrowRight, Check, ChevronDown, Heart, Menu, Moon, Plus, Search, ShoppingBag, Sun, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronDown, Heart, Menu, Moon, Plus, Search, ShoppingBag, Sun, X } from 'lucide-react';
 import xbloomPhoto from '@assets/image_1791649384537.png';
 import aidenPhoto from '@assets/image_1791649481086.png';
 import moccamasterPhoto from '@assets/image_1791649574028.png';
@@ -68,6 +68,9 @@ const copy = {
     productsTag: 'The working collection', productsTitle: 'Find your flow.',
     productsIntro: 'Good tools make the process clearer. Start with the part of your brew you want to understand better.',
     all: 'Everything', machines: 'Machines', beans: 'Beans', how: 'How it works', details: 'Details', add: 'Add to cart',
+    back: 'Back', origin: 'Origin', bagSize: 'Bag size', roastedBy: 'Roasted in Kuwait by Speak Coffee Roaster',
+    originUnlisted: 'Specific country not listed', description: 'Description', regularPrice: 'Regular price',
+    bundlePrice: 'Bundle price', includedItems: 'Included items', price: 'Price', savings: 'You save',
     bundlesTag: 'Made to work together', bundlesTitle: 'A good place to begin.',
     bundlesIntro: 'Three combinations, considered from the first grind to the final pour. A little less to decide, a lot more to enjoy.',
     bundleNote: 'Included in this set', save: 'Save', addBundle: 'Add bundle to cart',
@@ -103,6 +106,9 @@ const copy = {
     productsTag: 'مجموعة الأدوات', productsTitle: 'اكتشف طريقتك.',
     productsIntro: 'الأدوات الجيدة تجعل التحضير أوضح. ابدأ بالجزء الذي ترغب في فهمه أكثر.',
     all: 'الكل', machines: 'الأجهزة', beans: 'البن', how: 'كيف تعمل', details: 'التفاصيل', add: 'أضف إلى السلة',
+    back: 'رجوع', origin: 'المنشأ', bagSize: 'حجم الكيس', roastedBy: 'تحميص Speak Coffee Roaster في الكويت',
+    originUnlisted: 'لم يُذكر بلد المنشأ', description: 'الوصف', regularPrice: 'السعر الأصلي',
+    bundlePrice: 'سعر المجموعة', includedItems: 'محتويات المجموعة', price: 'السعر', savings: 'وفّرت',
     bundlesTag: 'اختيارات تكمل بعضها', bundlesTitle: 'بداية موفقة.',
     bundlesIntro: 'ثلاث مجموعات مدروسة من أول طحن إلى آخر صبّة. خيارات أقل، ومتعة أكثر.',
     bundleNote: 'تتضمن هذه المجموعة', save: 'وفّر', addBundle: 'أضف المجموعة إلى السلة',
@@ -142,6 +148,63 @@ const arabicProductCopy: Record<string, { description: string; why: string }> = 
   'brazil-samba': { description: '٢٥٠ غرام · تحميص Speak Coffee Roaster في الكويت', why: 'قهوة برازيلية سلسة، محمصة لفنجان حلو وموثوق كل صباح.' },
 };
 
+const machineDetailCopy: Record<string, { en: string; ar: string }> = {
+  xbloom: {
+    en: 'xBloom Studio brings grinding, weighing, and pouring together in one pour-over system. It follows a programmed recipe through those steps. Each part of the brew has a defined place in the process.',
+    ar: 'يجمع xBloom Studio الطحن والوزن والصب في نظام واحد للتحضير بالتقطير. يتبع وصفة مبرمجة خلال هذه الخطوات. وهكذا يكون لكل مرحلة من التحضير موضع واضح.',
+  },
+  'fellow-aiden': {
+    en: 'Fellow Aiden controls water temperature and timing at each brew stage. These controls help make batch brewing more repeatable. Its ready-to-use routine brings precision into everyday coffee making.',
+    ar: 'يتحكم Fellow Aiden بدرجة حرارة الماء وتوقيت كل مرحلة من مراحل التحضير. تساعد هذه الإعدادات على تكرار النتيجة عند تحضير دفعات القهوة. ويجعل روتينه الجاهز الدقة جزءاً من تحضير القهوة اليومي.',
+  },
+  moccamaster: {
+    en: 'A copper heating element maintains the brew temperature. This supports a steady extraction from one brew to the next. Its straightforward design makes it easy to prepare coffee to share.',
+    ar: 'يحافظ عنصر التسخين النحاسي على درجة حرارة التحضير. ويساعد ذلك على ثبات الاستخلاص من تحضير إلى آخر. ويجعل تصميمه العملي تحضير القهوة ومشاركتها أمراً سهلاً.',
+  },
+  'eureka-filtro': {
+    en: 'The Eureka Filtro is made for filter coffee. Its flat steel burrs grind evenly across the range. This helps make the coffee grounds more consistent for brewing.',
+    ar: 'صُممت Eureka Filtro للقهوة المقطرة. تطحن الشفرات الفولاذية المسطحة القهوة بتجانس عبر نطاق الطحن. ويساعد ذلك على الحصول على طحن أكثر اتساقاً للتحضير.',
+  },
+  'stagg-ekg': {
+    en: 'A PID controller maintains the temperature you select. The balanced spout helps you pour in a measured way. Together, they give you control over water temperature and pouring pace.',
+    ar: 'يحافظ متحكم PID على درجة الحرارة التي تختارها. وتساعد الفوهة المتوازنة على صب الماء بتحكم. ويمنحك ذلك تحكماً بدرجة حرارة الماء وسرعة الصب.',
+  },
+  'hario-scale': {
+    en: 'The scale measures coffee and water as you brew. Its built-in timer tracks the duration of each pour. Both measurements are available together while you prepare your coffee.',
+    ar: 'تزن الأداة القهوة والماء أثناء التحضير. ويتابع المؤقت المدمج مدة كل صبّة. ويجمع ذلك القياس والتوقيت في أداة واحدة.',
+  },
+};
+
+const beanOrigins: Record<string, { en: string; ar: string }> = {
+  konga: { en: 'Ethiopia', ar: 'إثيوبيا' },
+  webanchi: { en: 'Ethiopia', ar: 'إثيوبيا' },
+  'caramel-candy': { en: 'Blend · country not listed', ar: 'خلطة · لم يُذكر بلد المنشأ' },
+  'brazil-samba': { en: 'Brazil', ar: 'البرازيل' },
+};
+
+function detailDescription(item: CatalogItem, language: Language, t: typeof copy.en) {
+  if ('items' in item) {
+    return language === 'ar'
+      ? `تجمع هذه المجموعة المنتجات التالية: ${item.items.join('، ')}. سعرها الأصلي ${money(item.regular)} وسعرها ${money(item.price)}. بذلك توفّر ${money(item.regular - item.price)}.`
+      : `This set brings together ${item.items.join(', ')}. Its regular price is ${money(item.regular)}, and the bundle price is ${money(item.price)}. You save ${money(item.regular - item.price)}.`;
+  }
+  if (item.category === 'machine') return machineDetailCopy[item.id]?.[language] ?? `${item.description} ${item.why}`;
+  const origin = beanOrigins[item.id]?.[language] ?? t.originUnlisted;
+  return language === 'ar'
+    ? `المنشأ المسجل لهذه القهوة هو ${origin}. يحتوي الكيس على ٢٥٠ غراماً، وتحمّصه Speak Coffee Roaster في الكويت. لا تتضمن معلومات المنتج ملاحظات تذوق.`
+    : `The listed origin for this coffee is ${origin}. This 250g bag is roasted in Kuwait by Speak Coffee Roaster. The product information does not include tasting notes.`;
+}
+
+function detailHowLine(item: CatalogItem, language: Language, t: typeof copy.en) {
+  if ('items' in item) {
+    if (language === 'en') return item.note;
+    const index = bundles.findIndex(bundle => bundle.id === item.id);
+    return ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] ?? t.bundleNote;
+  }
+  if (item.category === 'bean') return t.roasted;
+  return language === 'ar' ? arabicProductCopy[item.id]?.why ?? item.why : item.why;
+}
+
 function money(price: number) {
   return `${Number.isInteger(price) ? price.toFixed(0) : price.toFixed(1)} KWD`;
 }
@@ -154,6 +217,22 @@ function catalogImageKey(item: CatalogItem) {
 
 function normalizeSearch(value: string) {
   return value.toLocaleLowerCase().normalize('NFKC').replace(/[\u064B-\u065F\u0670]/g, '').trim();
+}
+
+const DETAIL_BACK_PATH_KEY = 'brew-product-back-path';
+const DETAIL_BACK_SCROLL_KEY = 'brew-product-back-scroll';
+const PENDING_SECTION_KEY = 'brew-pending-section';
+
+function sessionGet(key: string) {
+  try { return window.sessionStorage.getItem(key); } catch { return null; }
+}
+
+function sessionSet(key: string, value: string) {
+  try { window.sessionStorage.setItem(key, value); } catch { /* session history is an enhancement */ }
+}
+
+function sessionRemove(key: string) {
+  try { window.sessionStorage.removeItem(key); } catch { /* session history is an enhancement */ }
 }
 
 function BrandMark({ className }: { className: string }) {
@@ -196,8 +275,8 @@ function FavoriteToggle({ id, name, saved, t, onToggle, className = '' }: {
   ><Heart size={16} fill={saved ? 'currentColor' : 'none'} strokeWidth={1.8}/></button>;
 }
 
-function SearchResults({ entries, t, onAdd, id }: {
-  entries: SearchEntry[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; id: string;
+function SearchResults({ entries, t, onAdd, onNavigate, id }: {
+  entries: SearchEntry[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onNavigate: () => void; id: string;
 }) {
   return <div className="search-results" id={id} role="region" aria-label={t.search}>
     {entries.length === 0
@@ -206,14 +285,16 @@ function SearchResults({ entries, t, onAdd, id }: {
         const photo = productPhotos[entry.imageKey];
         const blend = entry.imageKey === 'hario-photo' || entry.imageKey === 'bean-bag-photo';
         return <article className="search-result" key={entry.item.id} data-testid={`search-result-${entry.item.id}`}>
-          <div className="search-result-image">{photo
-            ? <img className={blend ? 'light-background' : ''} src={photo} alt="" aria-hidden="true"/>
-            : <ShoppingBag size={19} aria-hidden="true"/>}</div>
-          <div className="search-result-copy">
-            <small>{entry.category}</small>
-            <strong>{entry.item.name}</strong>
-            <span>{money(entry.item.price)}</span>
-          </div>
+          <Link href={`/product/${entry.item.id}`} className="search-result-link" onClick={onNavigate} data-testid={`link-search-result-${entry.item.id}`}>
+            <div className="search-result-image">{photo
+              ? <img className={blend ? 'light-background' : ''} src={photo} alt="" aria-hidden="true"/>
+              : <ShoppingBag size={19} aria-hidden="true"/>}</div>
+            <div className="search-result-copy">
+              <small>{entry.category}</small>
+              <strong>{entry.item.name}</strong>
+              <span>{money(entry.item.price)}</span>
+            </div>
+          </Link>
           <button className="search-add-button" type="button" onClick={() => onAdd(entry.item)} data-testid={`button-search-add-${entry.item.id}`}>{t.add}<Plus size={13}/></button>
         </article>;
       })}</div>}
@@ -226,31 +307,35 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
 }) {
   const localized = language === 'ar' ? arabicProductCopy[product.id] : undefined;
   return <article className="product-card" data-testid={`card-product-${product.id}`}>
-    <ProductIllustration product={product}>
-      <FavoriteToggle id={product.id} name={product.name} saved={isFavorite} t={t} onToggle={onToggleFavorite}/>
-    </ProductIllustration>
+    <div className="product-card-visual">
+      <Link href={`/product/${product.id}`} className="product-visual-link" onClick={() => onDetails(product)} aria-label={product.name} data-testid={`link-product-image-${product.id}`}>
+        <ProductIllustration product={product}/>
+      </Link>
+      <FavoriteToggle id={product.id} name={product.name} saved={isFavorite} t={t} onToggle={onToggleFavorite} className="product-card-favorite"/>
+    </div>
     <div className="product-info">
       <div className="product-kicker">{product.category === 'bean' ? t.localRoast : t.equipment}</div>
-      <div className="product-title-line"><h3 className="product-title">{product.name}</h3><span className="product-price" data-testid={`text-price-${product.id}`}>{money(product.price)}</span></div>
+      <div className="product-title-line"><Link href={`/product/${product.id}`} className="product-title-link" onClick={() => onDetails(product)} data-testid={`link-product-title-${product.id}`}><h3 className="product-title">{product.name}</h3></Link><span className="product-price" data-testid={`text-price-${product.id}`}>{money(product.price)}</span></div>
       <p className="product-desc">{localized?.description || product.description}</p>
       <div className="card-actions">
-        <button className="text-action" onClick={() => onDetails(product)} data-testid={`button-details-${product.id}`}>{t.details}</button>
+        <Link className="text-action" href={`/product/${product.id}`} onClick={() => onDetails(product)} data-testid={`button-details-${product.id}`}>{t.details}</Link>
         <button className="add-button" onClick={() => onAdd(product)} data-testid={`button-add-${product.id}`}>{t.add}</button>
       </div>
     </div>
   </article>;
 }
 
-function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favoriteCount, openCart, openFavorites, onAddItem }: {
+function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favoriteCount, openCart, openFavorites, onAddItem, onNavigateToDetail }: {
   t: typeof copy.en; language: Language; setLanguage: (l: Language) => void; theme: 'light' | 'dark'; toggleTheme: () => void;
-  cartCount: number; favoriteCount: number; openCart: () => void; openFavorites: () => void; onAddItem: (item: CatalogItem) => void;
+  cartCount: number; favoriteCount: number; openCart: () => void; openFavorites: () => void;
+  onAddItem: (item: CatalogItem) => void; onNavigateToDetail: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const mobileSearchPanelRef = useRef<HTMLDivElement>(null);
   const mobileSearchButtonRef = useRef<HTMLButtonElement>(null);
@@ -317,6 +402,18 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
     }
   };
   const showResults = searchDropdownOpen && Boolean(searchQuery.trim());
+  const goToSection = (sectionId: 'bundles' | 'contact') => {
+    setMenuOpen(false);
+    setCategoriesOpen(false);
+    setSearchDropdownOpen(false);
+    setMobileSearchOpen(false);
+    if (location === '/') {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      sessionSet(PENDING_SECTION_KEY, sectionId);
+      setLocation('/');
+    }
+  };
   return <>
     <div className="top-strip">{t.announcement}</div>
     <header className="nav-shell">
@@ -330,8 +427,8 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
               <Link href="/beans" data-testid="link-beans-dropdown">{t.navBeans}</Link>
             </div>}
           </div>
-          <Link href="/#bundles" data-testid="link-bundles">{t.navBundles}</Link>
-          <Link href="/#contact" data-testid="link-contact">{t.navContact}</Link>
+          <a href="#bundles" onClick={event => { event.preventDefault(); goToSection('bundles'); }} data-testid="link-bundles">{t.navBundles}</a>
+          <a href="#contact" onClick={event => { event.preventDefault(); goToSection('contact'); }} data-testid="link-contact">{t.navContact}</a>
         </nav>
         <div className="desktop-search" ref={desktopSearchRef}>
           <div className="search-field">
@@ -349,7 +446,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
             />
             {searchQuery && <button type="button" className="search-clear" onClick={clearSearch} aria-label={t.clearSearch} data-testid="button-clear-search"><X size={14}/></button>}
           </div>
-          {showResults && !mobileSearchOpen && <SearchResults id="desktop-search-results" entries={searchEntries} t={t} onAdd={addSearchResult}/>}
+          {showResults && !mobileSearchOpen && <SearchResults id="desktop-search-results" entries={searchEntries} t={t} onAdd={addSearchResult} onNavigate={onNavigateToDetail}/>}
         </div>
         <div className="nav-actions">
           <button className="icon-button" onClick={toggleTheme} aria-label={theme === 'light' ? t.themeDark : t.themeLight} data-testid="button-theme">
@@ -385,14 +482,14 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
             </div>
             <button className="icon-button mobile-search-close" onClick={toggleMobileSearch} aria-label={t.close} data-testid="button-close-mobile-search"><X size={16}/></button>
           </div>
-          {showResults && <SearchResults id="mobile-search-results" entries={searchEntries} t={t} onAdd={addSearchResult}/>}
+          {showResults && <SearchResults id="mobile-search-results" entries={searchEntries} t={t} onAdd={addSearchResult} onNavigate={onNavigateToDetail}/>}
         </div>
       </div>}
       {menuOpen && <nav className="mobile-nav" aria-label="Mobile navigation">
         <button onClick={() => setCategoriesOpen(!categoriesOpen)} data-testid="button-mobile-categories">{t.categories} <ChevronDown size={13}/></button>
         {categoriesOpen && <><Link href="/machines" data-testid="link-mobile-machines">{t.navMachines}</Link><Link href="/beans" data-testid="link-mobile-beans">{t.navBeans}</Link></>}
-        <Link href="/#bundles" data-testid="link-mobile-bundles">{t.navBundles}</Link>
-        <Link href="/#contact" data-testid="link-mobile-contact">{t.navContact}</Link>
+        <a href="#bundles" onClick={event => { event.preventDefault(); goToSection('bundles'); }} data-testid="link-mobile-bundles">{t.navBundles}</a>
+        <a href="#contact" onClick={event => { event.preventDefault(); goToSection('contact'); }} data-testid="link-mobile-contact">{t.navContact}</a>
       </nav>}
     </header>
   </>;
@@ -442,8 +539,9 @@ function Ticker({ t }: { t: typeof copy.en }) {
   </span>)}</div></div>;
 }
 
-function BundleSection({ t, language, onAdd, favoriteIds, onToggleFavorite }: {
-  t: typeof copy.en; language: Language; onAdd: (bundle: Bundle) => void; favoriteIds: string[]; onToggleFavorite: (item: CatalogItem) => void;
+function BundleSection({ t, language, onAdd, onDetails, favoriteIds, onToggleFavorite }: {
+  t: typeof copy.en; language: Language; onAdd: (bundle: Bundle) => void; onDetails: (bundle: Bundle) => void;
+  favoriteIds: string[]; onToggleFavorite: (item: CatalogItem) => void;
 }) {
   return <section className="bundles-section" id="bundles"><div className="container-wide">
     <div className="section-head"><div><div className="eyebrow">{t.bundlesTag}</div><h2>{t.bundlesTitle}</h2></div><p className="section-intro">{t.bundlesIntro}</p></div>
@@ -454,6 +552,7 @@ function BundleSection({ t, language, onAdd, favoriteIds, onToggleFavorite }: {
       <h3>{bundle.name}</h3><p>{language === 'ar' ? ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] : bundle.note}</p>
       <ul className="bundle-items" aria-label={t.bundleNote}>{bundle.items.map(item => <li key={item}>{item}</li>)}</ul>
       <div className="bundle-bottom"><div className="bundle-price"><small>{money(bundle.regular)}</small><strong>{money(bundle.price)}</strong><span>{t.save} {money(bundle.regular - bundle.price)}</span></div>
+        <Link className="bundle-detail-link" href={`/product/${bundle.id}`} onClick={() => onDetails(bundle)} data-testid={`link-details-${bundle.id}`}>{t.details}</Link>
         <button className="add-button" onClick={() => onAdd(bundle)} data-testid={`button-add-${bundle.id}`}>{t.addBundle}</button></div>
     </article>)}</div>
   </div></section>;
@@ -535,24 +634,62 @@ function FavoritesDrawer({ open, close, items, t, onAdd, onRemove }: {
   </>;
 }
 
-function ProductModal({ product, t, language, close, onAdd }: { product: Product | null; t: typeof copy.en; language: Language; close: () => void; onAdd: (product: Product) => void }) {
-  useEffect(() => {
-    if (!product) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [product, close]);
-  if (!product) return null;
-  return <div className="modal-backdrop open" onClick={close} role="presentation">
-    <section className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" onClick={event => event.stopPropagation()}>
-      <button className="icon-button modal-close" onClick={close} aria-label={t.close} data-testid="button-close-details"><X size={16}/></button>
-      <div className="eyebrow">{t.productDetails}</div><ProductIllustration product={product}/>
-      <h2 id="product-modal-title">{product.name}</h2><p>{language === 'ar' ? arabicProductCopy[product.id]?.why : product.why}</p>
-      {product.category === 'bean' && <p>{t.roasted}</p>}
-      <div className="modal-meta"><span>{product.category === 'bean' ? t.localRoast : t.how}</span><strong>{money(product.price)}</strong></div>
-      <button className="primary-button" onClick={() => { onAdd(product); close(); }} data-testid={`button-modal-add-${product.id}`}>{t.add}<Plus size={15}/></button>
-    </section>
-  </div>;
+function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFavorite, onAdd }: {
+  item: CatalogItem; t: typeof copy.en; language: Language; backHref: string; isFavorite: boolean;
+  onToggleFavorite: () => void; onAdd: (item: CatalogItem, quantity: number) => void;
+}) {
+  const [quantity, setQuantity] = useState(1);
+  useEffect(() => setQuantity(1), [item.id]);
+  const isBundle = 'items' in item;
+  const category = isBundle ? t.bundle : item.category === 'machine' ? t.categoryMachines : t.categoryBeans;
+  const image = productPhotos[catalogImageKey(item)];
+  const origin = !isBundle && item.category === 'bean' ? beanOrigins[item.id]?.[language] ?? t.originUnlisted : '';
+
+  return <main className="container-wide product-detail" data-testid={`page-product-${item.id}`}>
+    <Link href={backHref} className="detail-back" data-testid="link-product-back"><ArrowLeft size={15}/>{t.back}</Link>
+    <div className="product-detail-grid">
+      <div className="product-detail-image" aria-label={item.name} role="img">
+        {image ? <img src={image} alt={item.name} data-testid={`image-product-detail-${item.id}`}/> : <ShoppingBag size={64} aria-hidden="true"/>}
+      </div>
+      <div className="product-detail-copy">
+        <div className="eyebrow">{category}</div>
+        <h1>{item.name}</h1>
+        {isBundle
+          ? <div className="detail-bundle-prices">
+            <div><small>{t.regularPrice}</small><del>{money(item.regular)}</del></div>
+            <div><small>{t.bundlePrice}</small><strong>{money(item.price)}</strong></div>
+            <div><small>{t.savings}</small><span>{money(item.regular - item.price)}</span></div>
+          </div>
+          : <div className="detail-product-price">{money(item.price)}</div>}
+        <section className="detail-how">
+          <h2>{t.how}</h2>
+          <p>{detailHowLine(item, language, t)}</p>
+        </section>
+        <section className="detail-description">
+          <h2>{t.description}</h2>
+          <p>{detailDescription(item, language, t)}</p>
+        </section>
+        {!isBundle && item.category === 'bean' && <dl className="detail-facts">
+          <div><dt>{t.origin}</dt><dd>{origin}</dd></div>
+          <div><dt>{t.bagSize}</dt><dd>{language === 'ar' ? '٢٥٠ غرام' : '250g'}</dd></div>
+          <div><dt>{t.roasted}</dt><dd>{t.roastedBy}</dd></div>
+        </dl>}
+        {isBundle && <section className="detail-included">
+          <h2>{t.includedItems}</h2>
+          <ul>{item.items.map(includedItem => <li key={includedItem}>{includedItem}</li>)}</ul>
+        </section>}
+        <div className="detail-purchase">
+          <div className="detail-quantity" role="group" aria-label={t.quantity}>
+            <button type="button" onClick={() => setQuantity(value => Math.max(1, value - 1))} aria-label={`${t.quantity} −`} data-testid="button-detail-quantity-decrease">−</button>
+            <span data-testid="text-detail-quantity">{quantity}</span>
+            <button type="button" onClick={() => setQuantity(value => value + 1)} aria-label={`${t.quantity} +`} data-testid="button-detail-quantity-increase">+</button>
+          </div>
+          <FavoriteToggle id={item.id} name={item.name} saved={isFavorite} t={t} onToggle={onToggleFavorite} className="detail-favorite"/>
+          <button className="add-button detail-add" onClick={() => onAdd(item, quantity)} data-testid={`button-detail-add-${item.id}`}>{t.add}<Plus size={15}/></button>
+        </div>
+      </div>
+    </div>
+  </main>;
 }
 
 function Storefront() {
