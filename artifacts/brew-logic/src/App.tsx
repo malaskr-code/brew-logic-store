@@ -13,6 +13,7 @@ import eurekaPhoto from '@assets/image_1791649604656.png';
 import staggPhoto from '@assets/image_1791649655738.png';
 import harioPhoto from '@assets/image_1791649703321.png';
 import beanBagPhoto from '@assets/image_1791649759965.png';
+import { currencies, CurrencyProvider, useCurrency, type Currency } from '@/lib/currency';
 
 type Language = 'en' | 'ar';
 type Product = { id: string; name: string; price: number; category: 'machine' | 'bean'; image: string; description: string; why: string; origin?: string };
@@ -58,7 +59,7 @@ const productPhotos: Record<string, string> = {
 
 const copy = {
   en: {
-    announcement: 'Free delivery on orders over 25 KWD · Kuwait',
+    announcement: 'Free delivery on orders over {price} · Kuwait',
     navMachines: 'Machines', navBeans: 'Beans', navBundles: 'Bundles', navContact: 'Contact', categories: 'Categories',
     heroTag: 'Good coffee is a set of decisions',
     heroLead: 'Engineer', heroEm: 'your cup.',
@@ -89,6 +90,8 @@ const copy = {
     search: 'Search', searchPlaceholder: 'Search machines, beans, bundles...', clearSearch: 'Clear search', noSearchResults: 'No products found',
     categoryMachineSearch: 'Machines & tools', categoryBeanSearch: 'Coffee beans', favorites: 'Favorites', noFavorites: 'No favorites yet',
     favoriteAdd: 'Add to favorites', favoriteRemove: 'Remove from favorites',
+    currency: 'Currency', currencyLoading: 'Loading exchange rates', currencyError: 'Exchange rates unavailable. Prices are in KWD.',
+    currencyNote: 'Approximate. Orders are charged in KWD.',
     checkoutSuccess: 'Your selection is ready. Checkout is not enabled in this demo.',
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
     categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Speak Coffee Roaster. Find a coffee worth slowing down for.',
@@ -96,7 +99,7 @@ const copy = {
     equipment: 'Brew equipment', localRoast: '250g · Kuwait roasted', each: 'Each', bundle: 'Bundle', brewStage: 'CALIBRATE · POUR · REPEAT', figure: 'FIG. 01 / POUR-OVER SYSTEM',
   },
   ar: {
-    announcement: 'توصيل مجاني للطلبات فوق ٢٥ د.ك · الكويت',
+    announcement: 'توصيل مجاني للطلبات فوق {price} · الكويت',
     navMachines: 'الأجهزة', navBeans: 'البن', navBundles: 'المجموعات', navContact: 'تواصل معنا', categories: 'التصنيفات',
     heroTag: 'القهوة الجيدة تبدأ بقرارات مدروسة',
     heroLead: 'أتقن', heroEm: 'قهوتك.',
@@ -127,6 +130,8 @@ const copy = {
     search: 'بحث', searchPlaceholder: 'ابحث عن الأجهزة أو البن أو المجموعات...', clearSearch: 'مسح البحث', noSearchResults: 'لم يتم العثور على منتجات',
     categoryMachineSearch: 'أجهزة وأدوات القهوة', categoryBeanSearch: 'حبوب القهوة', favorites: 'المفضلة', noFavorites: 'لا توجد عناصر في المفضلة بعد',
     favoriteAdd: 'أضف إلى المفضلة', favoriteRemove: 'إزالة من المفضلة',
+    currency: 'العملة', currencyLoading: 'جارٍ تحميل أسعار الصرف', currencyError: 'أسعار الصرف غير متاحة. الأسعار بالدينار الكويتي.',
+    currencyNote: 'أسعار تقريبية. تُحصّل قيمة الطلبات بالدينار الكويتي.',
     checkoutSuccess: 'اختياراتك جاهزة. إتمام الطلب غير متاح في هذه التجربة.',
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
     categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Speak Coffee Roaster. اكتشف قهوة تستحق التمهل.',
@@ -182,7 +187,7 @@ const beanOrigins: Record<string, { en: string; ar: string }> = {
   'brazil-samba': { en: 'Brazil', ar: 'البرازيل' },
 };
 
-function detailDescription(item: CatalogItem, language: Language, t: typeof copy.en) {
+function detailDescription(item: CatalogItem, language: Language, t: typeof copy.en, money: (price: number) => string) {
   if ('items' in item) {
     return language === 'ar'
       ? `تجمع هذه المجموعة المنتجات التالية: ${item.items.join('، ')}. سعرها الأصلي ${money(item.regular)} وسعرها ${money(item.price)}. بذلك توفّر ${money(item.regular - item.price)}.`
@@ -203,10 +208,6 @@ function detailHowLine(item: CatalogItem, language: Language, t: typeof copy.en)
   }
   if (item.category === 'bean') return t.roasted;
   return language === 'ar' ? arabicProductCopy[item.id]?.why ?? item.why : item.why;
-}
-
-function money(price: number) {
-  return `${Number.isInteger(price) ? price.toFixed(0) : price.toFixed(1)} KWD`;
 }
 
 function catalogImageKey(item: CatalogItem) {
@@ -278,6 +279,7 @@ function FavoriteToggle({ id, name, saved, t, onToggle, className = '' }: {
 function SearchResults({ entries, t, onAdd, onNavigate, id }: {
   entries: SearchEntry[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onNavigate: () => void; id: string;
 }) {
+  const { money } = useCurrency();
   return <div className="search-results" id={id} role="region" aria-label={t.search}>
     {entries.length === 0
       ? <div className="search-no-results" role="status" data-testid="search-no-results">{t.noSearchResults}</div>
@@ -305,6 +307,7 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
   product: Product; t: typeof copy.en; language: Language; onAdd: (product: Product) => void; onDetails: (product: Product) => void;
   isFavorite: boolean; onToggleFavorite: () => void;
 }) {
+  const { money } = useCurrency();
   const localized = language === 'ar' ? arabicProductCopy[product.id] : undefined;
   return <article className="product-card" data-testid={`card-product-${product.id}`}>
     <div className="product-card-visual">
@@ -325,11 +328,24 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
   </article>;
 }
 
+function CurrencyDropdown({ t, theme, mobile = false }: { t: typeof copy.en; theme: 'light' | 'dark'; mobile?: boolean }) {
+  const { currency, setCurrency, status } = useCurrency();
+  return <div className={`currency-picker ${theme}${mobile ? ' currency-picker-mobile' : ''}`}
+    title={status === 'error' ? t.currencyError : status === 'loading' ? t.currencyLoading : t.currency}>
+    <select aria-label={t.currency} value={currency} disabled={status !== 'ready'}
+      onChange={event => setCurrency(event.target.value as Currency)} data-testid={mobile ? 'select-currency-mobile' : 'select-currency'}>
+      {currencies.map(code => <option key={code} value={code}>{code}</option>)}
+    </select>
+    <ChevronDown size={11} aria-hidden="true"/>
+  </div>;
+}
+
 function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favoriteCount, openCart, openFavorites, onAddItem, onNavigateToDetail }: {
   t: typeof copy.en; language: Language; setLanguage: (l: Language) => void; theme: 'light' | 'dark'; toggleTheme: () => void;
   cartCount: number; favoriteCount: number; openCart: () => void; openFavorites: () => void;
   onAddItem: (item: CatalogItem) => void; onNavigateToDetail: () => void;
 }) {
+  const { money } = useCurrency();
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -415,7 +431,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
     }
   };
   return <>
-    <div className="top-strip">{t.announcement}</div>
+    <div className="top-strip"><span>{t.announcement.split('{price}')[0]}<bdi>{money(25)}</bdi>{t.announcement.split('{price}')[1]}</span></div>
     <header className="nav-shell">
       <div className="container-wide nav-inner">
         <Logo />
@@ -449,6 +465,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
           {showResults && !mobileSearchOpen && <SearchResults id="desktop-search-results" entries={searchEntries} t={t} onAdd={addSearchResult} onNavigate={onNavigateToDetail}/>}
         </div>
         <div className="nav-actions">
+          <CurrencyDropdown t={t} theme={theme}/>
           <button className="icon-button" onClick={toggleTheme} aria-label={theme === 'light' ? t.themeDark : t.themeLight} data-testid="button-theme">
             {theme === 'light' ? <Moon size={16}/> : <Sun size={16}/>}
           </button>
@@ -486,6 +503,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
         </div>
       </div>}
       {menuOpen && <nav className="mobile-nav" aria-label="Mobile navigation">
+        <div className="mobile-currency-row"><span>{t.currency}</span><CurrencyDropdown t={t} theme={theme} mobile/></div>
         <button onClick={() => setCategoriesOpen(!categoriesOpen)} data-testid="button-mobile-categories">{t.categories} <ChevronDown size={13}/></button>
         {categoriesOpen && <><Link href="/machines" data-testid="link-mobile-machines">{t.navMachines}</Link><Link href="/beans" data-testid="link-mobile-beans">{t.navBeans}</Link></>}
         <a href="#bundles" onClick={event => { event.preventDefault(); goToSection('bundles'); }} data-testid="link-mobile-bundles">{t.navBundles}</a>
@@ -512,7 +530,7 @@ function Footer({ t }: { t: typeof copy.en }) {
             <div className="footer-col"><strong>{t.follow}</strong><a href="https://www.instagram.com/" target="_blank" rel="noreferrer" data-testid="footer-link-instagram">Instagram</a><span>Kuwait City, Kuwait</span></div>
           </div>
         </div>
-        <div className="footer-bottom"><span>{t.rights}</span><span>{t.crafted}</span></div>
+        <div className="footer-bottom"><span>{t.rights}</span><a href="https://www.exchangerate-api.com" data-testid="link-exchange-attribution">Rates By Exchange Rate API</a><span>{t.crafted}</span></div>
       </div>
     </footer>
   </>;
@@ -543,6 +561,7 @@ function BundleSection({ t, language, onAdd, onDetails, favoriteIds, onToggleFav
   t: typeof copy.en; language: Language; onAdd: (bundle: Bundle) => void; onDetails: (bundle: Bundle) => void;
   favoriteIds: string[]; onToggleFavorite: (item: CatalogItem) => void;
 }) {
+  const { money } = useCurrency();
   return <section className="bundles-section" id="bundles"><div className="container-wide">
     <div className="section-head"><div><div className="eyebrow">{t.bundlesTag}</div><h2>{t.bundlesTitle}</h2></div><p className="section-intro">{t.bundlesIntro}</p></div>
     <div className="bundle-grid">{bundles.map((bundle, index) => <article className="bundle-card" key={bundle.id} data-testid={`card-${bundle.id}`}>
@@ -570,6 +589,7 @@ function OriginSection({ t }: { t: typeof copy.en }) {
 function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }: {
   open: boolean; close: () => void; items: CartItem[]; t: typeof copy.en; onQuantity: (id: string, delta: number) => void; onRemove: (id: string) => void; onCheckout: () => void;
 }) {
+  const { money, currency } = useCurrency();
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
@@ -581,6 +601,7 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }:
     <div className={`drawer-backdrop${open ? ' open' : ''}`} onClick={close} aria-hidden={!open}/>
     <aside className={`cart-drawer${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cart}>
       <div className="drawer-head"><h2>{t.cart} <span style={{fontSize:14,opacity:.55}}>({items.reduce((n, x) => n + x.quantity, 0)})</span></h2><button className="icon-button" onClick={close} aria-label={t.close} data-testid="button-close-cart"><X size={17}/></button></div>
+      {currency !== 'KWD' && <p className="currency-note" data-testid="text-currency-note">{t.currencyNote}</p>}
       {items.length === 0 ? <div className="empty-cart"><div><ShoppingBag size={26} strokeWidth={1.2}/><h3>{t.emptyTitle}</h3><p>{t.emptyText}</p><button className="primary-button" onClick={close} data-testid="button-empty-shopping">{t.startShopping}<ArrowRight size={14}/></button></div></div> : <>
         <div className="cart-items">{items.map(item => <article className="cart-row" key={item.id} data-testid={`row-cart-${item.id}`}>
           <div className="cart-thumb"><div className={`device ${item.image}`}/></div>
@@ -597,6 +618,7 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }:
 function FavoritesDrawer({ open, close, items, t, onAdd, onRemove }: {
   open: boolean; close: () => void; items: CatalogItem[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onRemove: (id: string) => void;
 }) {
+  const { money } = useCurrency();
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
@@ -638,6 +660,7 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
   item: CatalogItem; t: typeof copy.en; language: Language; backHref: string; isFavorite: boolean;
   onToggleFavorite: () => void; onAdd: (item: CatalogItem, quantity: number) => void;
 }) {
+  const { money } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   useEffect(() => setQuantity(1), [item.id]);
   const isBundle = 'items' in item;
@@ -667,7 +690,7 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
         </section>
         <section className="detail-description">
           <h2>{t.description}</h2>
-          <p>{detailDescription(item, language, t)}</p>
+          <p>{detailDescription(item, language, t, money)}</p>
         </section>
         {!isBundle && item.category === 'bean' && <dl className="detail-facts">
           <div><dt>{t.origin}</dt><dd>{origin}</dd></div>
@@ -841,9 +864,11 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 function App() {
   return <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <CurrencyProvider>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <Router/>
       </WouterRouter>
+      </CurrencyProvider>
       <Toaster/>
     </TooltipProvider>
   </QueryClientProvider>;

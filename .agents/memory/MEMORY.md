@@ -1,0 +1,1 @@
+- [Change scope](change-scope.md) — Keep Brew Logic changes limited to the user's requested feature; do not change anything else.
