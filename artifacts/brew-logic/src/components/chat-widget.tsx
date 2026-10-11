@@ -39,6 +39,16 @@ const productNames = [...catalogItems].sort((a, b) => b.name.length - a.name.len
 const namePattern = new RegExp(`(${productNames.map(item => item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
 const productByName = new Map(catalogItems.map(item => [item.name.toLowerCase(), item]));
 
+type ChatState = { messages: StoredMessage[]; pending: boolean };
+let chatState: ChatState = { messages: readConversation(), pending: false };
+const listeners = new Set<(state: ChatState) => void>();
+
+function updateConversation(messages: StoredMessage[], pending: boolean) {
+  chatState = { messages, pending };
+  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch { /* Chat still works without storage. */ }
+  listeners.forEach(listener => listener(chatState));
+}
+
 function linkedAnswer(content: string, onNavigate: () => void): ReactNode {
   return content.split(namePattern).map((part, index) => {
     const product = productByName.get(part.toLowerCase());
@@ -51,16 +61,17 @@ function linkedAnswer(content: string, onNavigate: () => void): ReactNode {
 export function ChatWidget({ language, onNavigate }: { language: 'en' | 'ar'; onNavigate: () => void }) {
   const t = text[language];
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<StoredMessage[]>(readConversation);
+  const [state, setState] = useState<ChatState>(chatState);
+  const { messages, pending } = state;
   const [input, setInput] = useState('');
-  const [pending, setPending] = useState(false);
-  const busy = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch { /* Chat still works without storage. */ }
-  }, [messages]);
+    listeners.add(setState);
+    setState(chatState);
+    return () => { listeners.delete(setState); };
+  }, []);
   useEffect(() => {
     if (open) endRef.current?.scrollIntoView({ block: 'nearest' });
   }, [messages, pending, open]);
@@ -74,12 +85,10 @@ export function ChatWidget({ language, onNavigate }: { language: 'en' | 'ar'; on
 
   const send = async (value: string) => {
     const content = value.trim();
-    if (!content || content.length > 500 || busy.current) return;
-    busy.current = true;
-    setPending(true);
+    if (!content || content.length > 500 || chatState.pending) return;
     setInput('');
     const next: StoredMessage[] = [...messages, { role: 'user', content }];
-    setMessages(next);
+    updateConversation(next, true);
     try {
       const history = next.filter(message => !message.failed).slice(-6).map(message => ({
         role: message.role, content: message.content.slice(0, 500),
@@ -88,13 +97,12 @@ export function ChatWidget({ language, onNavigate }: { language: 'en' | 'ar'; on
         credentials: 'same-origin', signal: AbortSignal.timeout(35000),
       });
       if (!response.reply?.trim()) throw new Error('Empty reply');
-      setMessages(current => [...current, { role: 'assistant', content: response.reply }]);
+      updateConversation([...next, { role: 'assistant', content: response.reply }], true);
     } catch (error) {
       const rateLimited = typeof error === 'object' && error !== null && 'status' in error && error.status === 429;
-      setMessages(current => [...current, { role: 'assistant', content: rateLimited ? t.busy : t.unavailable, failed: true }]);
+      updateConversation([...next, { role: 'assistant', content: rateLimited ? t.busy : t.unavailable, failed: true }], true);
     } finally {
-      busy.current = false;
-      setPending(false);
+      updateConversation(chatState.messages, false);
     }
   };
 
