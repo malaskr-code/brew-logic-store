@@ -10,6 +10,9 @@
   "include": ["src"],
   "references": [
     {
+      "path": "../../lib/brew-catalog"
+    },
+    {
       "path": "../../lib/db"
     },
     {

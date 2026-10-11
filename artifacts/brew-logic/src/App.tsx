@@ -14,37 +14,16 @@ import staggPhoto from '@assets/image_1791649655738.png';
 import harioPhoto from '@assets/image_1791649703321.png';
 import beanBagPhoto from '@assets/image_1791649759965.png';
 import { currencies, CurrencyProvider, useCurrency, type Currency } from '@/lib/currency';
+import { products, bundles, catalogItems, type Product, type Bundle, type CatalogItem } from '@workspace/brew-catalog';
+import { ChatWidget } from '@/components/chat-widget';
 
 type Language = 'en' | 'ar';
-type Product = { id: string; name: string; price: number; category: 'machine' | 'bean'; image: string; description: string; why: string; origin?: string };
 type CartItem = { id: string; name: string; price: number; image: string; quantity: number; isBundle?: boolean };
 
 const queryClient = new QueryClient();
 
-const products: Product[] = [
-  { id: 'xbloom', name: 'xBloom Studio', price: 199, category: 'machine', image: 'xbloom-photo', description: 'A complete pour-over system, tuned to your recipe.', why: 'It grinds, weighs, and pours following a programmed recipe, so every variable has a place.' },
-  { id: 'fellow-aiden', name: 'Fellow Aiden Precision Coffee Maker', price: 129, category: 'machine', image: 'aiden-photo', description: 'Precision brewing, with the ease of a morning button.', why: 'It controls water temperature and timing for each brew stage, bringing repeatability to batch coffee.' },
-  { id: 'moccamaster', name: 'Moccamaster 10-Cup Coffee Maker', price: 100, category: 'machine', image: 'moccamaster-photo', description: 'A considered classic for cups shared around the table.', why: 'A copper heating element maintains brew temperature for a steady, balanced extraction.' },
-  { id: 'eureka-filtro', name: 'Eureka Filtro grinder', price: 89, category: 'machine', image: 'eureka-photo', description: 'A dedicated filter grinder with a quietly capable motor.', why: 'Flat steel burrs produce even grounds across the range, helping your coffee taste clear and composed.' },
-  { id: 'stagg-ekg', name: 'Fellow Stagg EKG Electric Kettle Pro', price: 59, category: 'machine', image: 'stagg-photo', description: 'A precise pour, with temperature at your fingertips.', why: 'A PID controller maintains your set temperature; the balanced spout makes a measured pour feel natural.' },
-  { id: 'hario-scale', name: 'Hario V60 Drip Scale and Timer', price: 19, category: 'machine', image: 'hario-photo', description: 'Two useful measurements, neatly brought together.', why: 'It weighs your coffee and water while a built-in timer tracks each pour.' },
-  { id: 'konga', name: 'Ethiopia Konga', price: 6, category: 'bean', image: 'bean-bag-photo', description: '250g · Roasted in Kuwait by Speak Coffee Roaster', why: 'An expressive Ethiopian coffee, roasted locally to make the most of its lively, layered character.', origin: '250g · Speak Coffee Roaster' },
-  { id: 'webanchi', name: 'Ethiopia Webanchi', price: 6.5, category: 'bean', image: 'bean-bag-photo', description: '250g · Roasted in Kuwait by Speak Coffee Roaster', why: 'A carefully roasted Ethiopian coffee with a bright, fragrant cup and a long, sweet finish.', origin: '250g · Speak Coffee Roaster' },
-  { id: 'caramel-candy', name: 'Blend Caramel Candy', price: 5, category: 'bean', image: 'bean-bag-photo', description: '250g · Roasted in Kuwait by Speak Coffee Roaster', why: 'A comforting everyday blend with a rounded sweetness that works beautifully across brew styles.', origin: '250g · Speak Coffee Roaster' },
-  { id: 'brazil-samba', name: 'Brazil Samba', price: 3.5, category: 'bean', image: 'bean-bag-photo', description: '250g · Roasted in Kuwait by Speak Coffee Roaster', why: 'An easygoing Brazilian coffee roasted for a sweet, dependable cup, morning after morning.', origin: '250g · Speak Coffee Roaster' },
-];
-
-const bundles = [
-  { id: 'bundle-morning', name: 'The Automatic Morning', regular: 211.5, price: 199, items: ['xBloom Studio', 'Ethiopia Konga', 'Ethiopia Webanchi'], note: 'A whole recipe, ready to wake up with you.' },
-  { id: 'bundle-daily', name: 'The Daily Brewer', regular: 140, price: 132, items: ['Fellow Aiden Precision Coffee Maker', 'Blend Caramel Candy', 'Ethiopia Konga'], note: 'A reliable daily ritual, with room to explore.' },
-  { id: 'bundle-precision', name: 'The Precision Set', regular: 81.5, price: 75, items: ['Fellow Stagg EKG Electric Kettle Pro', 'Hario V60 Drip Scale and Timer', 'Brazil Samba'], note: 'The essentials for a deliberate pour-over.' },
-];
-
-type Bundle = typeof bundles[number];
-type CatalogItem = Product | Bundle;
 type SearchEntry = { item: CatalogItem; imageKey: string; category: string; searchTerms: string };
 
-const catalogItems: CatalogItem[] = [...products, ...bundles];
 const catalogIds = new Set(catalogItems.map(item => item.id));
 
 const productPhotos: Record<string, string> = {
@@ -837,6 +816,7 @@ function Storefront() {
     {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}/><OriginSection t={t}/></>}
     </>}
     <Footer t={t}/>
+    <ChatWidget language={language} onNavigate={rememberDetailReturn}/>
     <a className="whatsapp" href="https://wa.me/96598858879" target="_blank" rel="noreferrer" aria-label="Contact Brew Logic on WhatsApp" data-testid="link-floating-whatsapp"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L3 20l1.2-4.8A8.2 8.2 0 1 1 20.2 11.7Z" stroke="currentColor" strokeWidth="1.6"/><path d="M8.2 8.1c.3-.5.5-.5.8-.5h.5c.2 0 .4.1.5.5l.7 1.7c.1.3 0 .5-.2.7l-.5.6c-.2.2-.2.4-.1.6.4.8 1.3 1.6 2.2 2 .2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .3-.2 1.2-.8 1.5-.6.4-1.3.5-2.1.3-.8-.2-1.9-.7-3.1-1.8-1.2-1.1-2-2.4-2.2-3.3-.2-.9 0-1.6.3-2.1Z" fill="currentColor"/></svg></a>
     <CartDrawer open={cartOpen} close={() => setCartOpen(false)} items={cart} t={t} onQuantity={adjustQuantity} onRemove={removeItem} onCheckout={() => setToast(t.checkoutSuccess)}/>
     <FavoritesDrawer open={favoritesOpen} close={() => setFavoritesOpen(false)} items={favoriteItems} t={t} onAdd={addItem} onRemove={id => setFavoriteIds(old => old.filter(itemId => itemId !== id))}/>

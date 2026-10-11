@@ -11,6 +11,41 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /chat:
+    post:
+      operationId: sendChatMessage
+      summary: Ask the Brew Logic shop assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: Assistant reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReply"
+        "400":
+          description: Invalid message or history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReply"
+        "429":
+          description: Visitor or provider rate limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReply"
+        "503":
+          description: Assistant temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReply"
   /healthz:
     get:
       operationId: healthCheck
@@ -26,6 +61,36 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    ChatInput:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+    ChatReply:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+        error:
+          type: string
+          enum: [invalid_message, rate_limited, unavailable]
     HealthStatus:
       type: object
       properties:
