@@ -22,7 +22,10 @@ import type {
 import type {
   ChatInput,
   ChatReply,
-  HealthStatus
+  ExchangeRates,
+  GetVisitorGeoParams,
+  HealthStatus,
+  VisitorGeo
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -51,6 +54,167 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetVisitorGeoUrl = (params?: GetVisitorGeoParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/geo?${stringifiedParams}` : `/api/geo`
+}
+
+/**
+ * @summary Locate the visitor without exposing the location API URL
+ */
+export const getVisitorGeo = async (params?: GetVisitorGeoParams, options?: Parameters<typeof customFetch>[1]): Promise<VisitorGeo> => {
+
+  return customFetch<VisitorGeo>(getGetVisitorGeoUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVisitorGeoQueryKey = (params?: GetVisitorGeoParams,) => {
+    return [
+    `/api/geo`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetVisitorGeoQueryOptions = <TData = Awaited<ReturnType<typeof getVisitorGeo>>, TError = ErrorType<VisitorGeo>>(params?: GetVisitorGeoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVisitorGeo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVisitorGeoQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVisitorGeo>>> = ({ signal }) => getVisitorGeo(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVisitorGeo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVisitorGeoQueryResult = NonNullable<Awaited<ReturnType<typeof getVisitorGeo>>>
+export type GetVisitorGeoQueryError = ErrorType<VisitorGeo>
+
+
+/**
+ * @summary Locate the visitor without exposing the location API URL
+ */
+
+export function useGetVisitorGeo<TData = Awaited<ReturnType<typeof getVisitorGeo>>, TError = ErrorType<VisitorGeo>>(
+ params?: GetVisitorGeoParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVisitorGeo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVisitorGeoQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetExchangeRatesUrl = () => {
+
+
+
+
+  return `/api/rates`
+}
+
+/**
+ * @summary Get exchange rates based in KWD
+ */
+export const getExchangeRates = async ( options?: Parameters<typeof customFetch>[1]): Promise<ExchangeRates> => {
+
+  return customFetch<ExchangeRates>(getGetExchangeRatesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExchangeRatesQueryKey = () => {
+    return [
+    `/api/rates`
+    ] as const;
+    }
+
+
+export const getGetExchangeRatesQueryOptions = <TData = Awaited<ReturnType<typeof getExchangeRates>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExchangeRates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExchangeRatesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExchangeRates>>> = ({ signal }) => getExchangeRates({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExchangeRates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExchangeRatesQueryResult = NonNullable<Awaited<ReturnType<typeof getExchangeRates>>>
+export type GetExchangeRatesQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get exchange rates based in KWD
+ */
+
+export function useGetExchangeRates<TData = Awaited<ReturnType<typeof getExchangeRates>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExchangeRates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExchangeRatesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getSendChatMessageUrl = () => {
 

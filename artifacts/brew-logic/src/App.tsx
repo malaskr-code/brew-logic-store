@@ -71,6 +71,7 @@ const copy = {
     favoriteAdd: 'Add to favorites', favoriteRemove: 'Remove from favorites',
     currency: 'Currency', currencyLoading: 'Loading exchange rates', currencyError: 'Exchange rates unavailable. Prices are in KWD.',
     currencyNote: 'Approximate. Orders are charged in KWD.',
+    currencyLocationNote: 'Currency set from your location.',
     checkoutSuccess: 'Your selection is ready. Checkout is not enabled in this demo.',
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
     categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Speak Coffee Roaster. Find a coffee worth slowing down for.',
@@ -111,6 +112,7 @@ const copy = {
     favoriteAdd: 'أضف إلى المفضلة', favoriteRemove: 'إزالة من المفضلة',
     currency: 'العملة', currencyLoading: 'جارٍ تحميل أسعار الصرف', currencyError: 'أسعار الصرف غير متاحة. الأسعار بالدينار الكويتي.',
     currencyNote: 'أسعار تقريبية. تُحصّل قيمة الطلبات بالدينار الكويتي.',
+    currencyLocationNote: 'تم تحديد العملة حسب موقعك.',
     checkoutSuccess: 'اختياراتك جاهزة. إتمام الطلب غير متاح في هذه التجربة.',
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
     categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Speak Coffee Roaster. اكتشف قهوة تستحق التمهل.',
@@ -308,14 +310,15 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
 }
 
 function CurrencyDropdown({ t, theme, mobile = false }: { t: typeof copy.en; theme: 'light' | 'dark'; mobile?: boolean }) {
-  const { currency, setCurrency, status } = useCurrency();
+  const { currency, setCurrency, status, fromLocation, availableCurrencies } = useCurrency();
   return <div className={`currency-picker ${theme}${mobile ? ' currency-picker-mobile' : ''}`}
     title={status === 'error' ? t.currencyError : status === 'loading' ? t.currencyLoading : t.currency}>
     <select aria-label={t.currency} value={currency} disabled={status !== 'ready'}
       onChange={event => setCurrency(event.target.value as Currency)} data-testid={mobile ? 'select-currency-mobile' : 'select-currency'}>
-      {currencies.map(code => <option key={code} value={code}>{code}</option>)}
+      {currencies.map(code => <option key={code} value={code} disabled={status === 'ready' && !availableCurrencies.includes(code)}>{code}</option>)}
     </select>
     <ChevronDown size={11} aria-hidden="true"/>
+    {fromLocation && <small className="currency-location-note" data-testid={mobile ? 'text-currency-location-mobile' : 'text-currency-location'}>{t.currencyLocationNote}</small>}
   </div>;
 }
 

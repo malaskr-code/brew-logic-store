@@ -5,6 +5,35 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface VisitorGeo {
+  /** @nullable */
+  countryCode: string | null;
+  /** @nullable */
+  currency: string | null;
+}
+
+export type ExchangeRatesResult = typeof ExchangeRatesResult[keyof typeof ExchangeRatesResult];
+
+
+export const ExchangeRatesResult = {
+  success: 'success',
+} as const;
+
+export type ExchangeRatesBaseCode = typeof ExchangeRatesBaseCode[keyof typeof ExchangeRatesBaseCode];
+
+
+export const ExchangeRatesBaseCode = {
+  KWD: 'KWD',
+} as const;
+
+export type ExchangeRatesRates = {[key: string]: number};
+
+export interface ExchangeRates {
+  result: ExchangeRatesResult;
+  base_code: ExchangeRatesBaseCode;
+  rates: ExchangeRatesRates;
+}
+
 export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
 
 
@@ -47,4 +76,8 @@ export interface ChatReply {
 export interface HealthStatus {
   status: string;
 }
+
+export type GetVisitorGeoParams = {
+testip?: string;
+};
 

@@ -9,6 +9,33 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Locate the visitor without exposing the location API URL
+ */
+export const GetVisitorGeoQueryParams = zod.object({
+  "testip": zod.coerce.string().optional()
+})
+
+export const GetVisitorGeoResponse = zod.object({
+  "countryCode": zod.string().nullable(),
+  "currency": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get exchange rates based in KWD
+ */
+export const getExchangeRatesResponseRatesMinOne = 0;
+
+
+
+export const GetExchangeRatesResponse = zod.object({
+  "result": zod.enum(['success']),
+  "base_code": zod.enum(['KWD']),
+  "rates": zod.record(zod.string(), zod.number().min(getExchangeRatesResponseRatesMinOne))
+})
+
+
+/**
  * @summary Ask the Brew Logic shop assistant
  */
 export const sendChatMessageBodyMessagesItemContentMax = 500;

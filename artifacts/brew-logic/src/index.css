@@ -792,6 +792,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .currency-picker.light select { color-scheme:light; }
 .currency-picker.dark select { color-scheme:dark; }
 .currency-picker svg { position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none; }
+.currency-location-note { position:absolute; top:calc(100% + 4px); inset-inline-end:0; white-space:nowrap; color:color-mix(in srgb,var(--ink) 65%,transparent); font-size:8px; line-height:1.4; }
+.currency-picker-mobile:has(.currency-location-note) { margin-bottom:16px; }
 .mobile-currency-row { display:flex; align-items:center; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--line); font-size:12px; }
 .currency-note { margin:0 0 18px; color:var(--muted); font-size:11px; line-height:1.6; }
 .footer-bottom a { color:inherit; text-underline-offset:3px; }

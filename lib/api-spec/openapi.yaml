@@ -11,6 +11,48 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /geo:
+    get:
+      operationId: getVisitorGeo
+      summary: Locate the visitor without exposing the location API URL
+      parameters:
+        - in: query
+          name: testip
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Country and first currency from the location provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitorGeo"
+        "400":
+          description: Missing or invalid visitor IP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitorGeo"
+        "503":
+          description: Location unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitorGeo"
+  /rates:
+    get:
+      operationId: getExchangeRates
+      summary: Get exchange rates based in KWD
+      responses:
+        "200":
+          description: Exchange rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRates"
+        "503":
+          description: Exchange rates unavailable
   /chat:
     post:
       operationId: sendChatMessage
@@ -61,6 +103,29 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    VisitorGeo:
+      type: object
+      required: [countryCode, currency]
+      properties:
+        countryCode:
+          type: [string, "null"]
+        currency:
+          type: [string, "null"]
+    ExchangeRates:
+      type: object
+      required: [result, base_code, rates]
+      properties:
+        result:
+          type: string
+          enum: [success]
+        base_code:
+          type: string
+          enum: [KWD]
+        rates:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
     ChatInput:
       type: object
       required: [messages]
