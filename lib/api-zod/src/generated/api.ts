@@ -118,11 +118,13 @@ export const SignupCustomerBody = zod.object({
 }))
 
 export const SignupCustomerResponse = zod.object({
+  "verificationDelivery": zod.enum(['sent', 'unavailable']).optional().describe('Returned on signup; unavailable never means an email was sent.'),
   "user": zod.union([zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "email": zod.string().email(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "emailVerified": zod.boolean().describe('False for legacy accounts until ownership is proven')
 }),zod.null()])
 })
 
@@ -143,11 +145,13 @@ export const LoginCustomerBody = zod.object({
 })
 
 export const LoginCustomerResponse = zod.object({
+  "verificationDelivery": zod.enum(['sent', 'unavailable']).optional().describe('Returned on signup; unavailable never means an email was sent.'),
   "user": zod.union([zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "email": zod.string().email(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "emailVerified": zod.boolean().describe('False for legacy accounts until ownership is proven')
 }),zod.null()])
 })
 
@@ -162,12 +166,47 @@ export const LogoutCustomerResponse = zod.void()
  * @summary Read the signed-in customer, or null
  */
 export const GetCustomerSessionResponse = zod.object({
+  "verificationDelivery": zod.enum(['sent', 'unavailable']).optional().describe('Returned on signup; unavailable never means an email was sent.'),
   "user": zod.union([zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "email": zod.string().email(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "emailVerified": zod.boolean().describe('False for legacy accounts until ownership is proven')
 }),zod.null()])
+})
+
+
+/**
+ * Limited to once per minute and five attempts per hour per account. Requires a customer session, not Clerk.
+ * @summary Send a fresh verification link to the signed-in customer
+ */
+export const resendCustomerVerificationResponseRetryAfterSecondsMin = 0;
+
+
+
+export const ResendCustomerVerificationResponse = zod.object({
+  "status": zod.enum(['sent', 'already_verified']),
+  "retryAfterSeconds": zod.number().int().min(resendCustomerVerificationResponseRetryAfterSecondsMin)
+})
+
+
+/**
+ * @summary Consume a single-use verification token without creating a session
+ */
+export const confirmCustomerVerificationBodyTokenMin = 64;
+export const confirmCustomerVerificationBodyTokenMax = 64;
+
+
+export const confirmCustomerVerificationBodyTokenRegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const ConfirmCustomerVerificationBody = zod.object({
+  "token": zod.string().min(confirmCustomerVerificationBodyTokenMin).max(confirmCustomerVerificationBodyTokenMax).regex(confirmCustomerVerificationBodyTokenRegExp)
+})
+
+export const ConfirmCustomerVerificationResponse = zod.object({
+  "status": zod.enum(['verified'])
 })
 
 

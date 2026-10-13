@@ -111,6 +111,55 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CustomerSession" }
         "503": { description: Authentication unavailable }
+  /auth/verification/resend:
+    post:
+      operationId: resendCustomerVerification
+      summary: Send a fresh verification link to the signed-in customer
+      description: Limited to once per minute and five attempts per hour per account. Requires a customer session, not Clerk.
+      responses:
+        "200":
+          description: Email accepted for delivery, or account already verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerVerificationDelivery" }
+        "401": { description: Customer login required }
+        "403": { description: Cross-site request refused }
+        "429":
+          description: Resend limit reached
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "503":
+          description: Email delivery or accounts unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+  /auth/verification/confirm:
+    post:
+      operationId: confirmCustomerVerification
+      summary: Consume a single-use verification token without creating a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerVerificationInput" }
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerVerificationResult" }
+        "400":
+          description: Invalid, expired, superseded or already consumed token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "403": { description: Cross-site request refused }
+        "429": { description: Too many attempts }
+        "503": { description: Accounts unavailable }
   /catalog:
     get:
       operationId: getCatalog
@@ -314,20 +363,41 @@ components:
   schemas:
     CustomerUser:
       type: object
-      required: [id, name, email, createdAt]
+      required: [id, name, email, createdAt, emailVerified]
       properties:
         id: { type: string }
         name: { type: string }
         email: { type: string, format: email }
         createdAt: { type: string, format: date-time }
+        emailVerified: { type: boolean, description: False for legacy accounts until ownership is proven }
     CustomerSession:
       type: object
       required: [user]
       properties:
+        verificationDelivery:
+          type: string
+          enum: [sent, unavailable]
+          description: Returned on signup; unavailable never means an email was sent.
         user:
           anyOf:
             - { $ref: "#/components/schemas/CustomerUser" }
             - { type: "null" }
+    CustomerVerificationInput:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, pattern: "^[a-f0-9]{64}$", minLength: 64, maxLength: 64 }
+    CustomerVerificationResult:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [verified] }
+    CustomerVerificationDelivery:
+      type: object
+      required: [status, retryAfterSeconds]
+      properties:
+        status: { type: string, enum: [sent, already_verified] }
+        retryAfterSeconds: { type: integer, minimum: 0 }
     CustomerLoginInput:
       type: object
       required: [email, password]
@@ -346,7 +416,8 @@ components:
       required: [error, code]
       properties:
         error: { type: string }
-        code: { type: string, enum: [validation, email_in_use, invalid_credentials, rate_limited, cross_site, unavailable] }
+        code: { type: string, enum: [validation, email_in_use, invalid_credentials, rate_limited, cross_site, unavailable, invalid_verification, email_unavailable] }
+        retryAfterSeconds: { type: integer, minimum: 0 }
     CatalogResponse:
       type: object
       required: [products, bundles]

@@ -1,3 +1,7 @@
+.ca-verification { overflow-wrap: anywhere; }
+.ca-verification h2 { font-size: 18px; margin: 0; }
+.ca-verification p { font-size: 14px; line-height: 1.6; margin: 0; }
+.ca-verification .ca-submit { min-height: 44px; white-space: normal; }
 /* Customer account — scoped (.ca-*) */
 .ca-account { position: relative; }
 .ca-account-trigger.signed-in { border-radius: 999px; padding: 0 12px 0 10px; gap: 7px; }

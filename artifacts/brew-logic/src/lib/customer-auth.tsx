@@ -8,6 +8,8 @@ import {
   useLoginCustomer,
   useLogoutCustomer,
   useSignupCustomer,
+  useResendCustomerVerification,
+  useConfirmCustomerVerification,
   type CustomerSession,
   type CustomerUser,
 } from '@workspace/api-client-react';
@@ -34,6 +36,18 @@ const text = {
     validation: 'Please check your details and try again.', rate_limited: 'Too many attempts. Please wait a few minutes and try again.',
     unavailable: 'Accounts are unavailable right now. You can keep shopping as a guest.', generic: 'Something went wrong. Please try again.',
     logoutError: 'Could not log out. Please try again.', authDown: 'Accounts unavailable',
+    verifyTitle: 'Verify your email.', verifyLead: 'Confirm that this email address belongs to you.',
+    pendingEmail: 'Email not verified', verifiedEmail: 'Email verified',
+    pendingLead: 'Your account is open, but your email is not verified yet. You can continue shopping.',
+    checkInbox: 'Check your inbox and spam folder. The link expires in one hour. Only the newest link works.',
+    sentEmail: 'Verification email sent.',
+    email_unavailable: 'Verification emails are unavailable right now. No email was sent. You can keep shopping and try again later.',
+    invalid_verification: 'This link is invalid, expired, or already used. Log in and request a new link.',
+    resendEmail: 'Send verification email', sendingEmail: 'Sending…',
+    confirmEmail: 'Confirm email address', confirmingEmail: 'Verifying…',
+    verifiedLead: 'Your email address has been confirmed.',
+    verifyLogin: 'Log in to request a verification email.',
+    waitSeconds: 'Try again in', seconds: 'seconds',
   },
   ar: {
     loginTitle: 'أهلاً بعودتك.', loginLead: 'سجّل الدخول لتبقى أدوات تحضيرك في متناولك.',
@@ -51,6 +65,18 @@ const text = {
     validation: 'يرجى مراجعة بياناتك والمحاولة مرة أخرى.', rate_limited: 'محاولات كثيرة. يرجى الانتظار بضع دقائق ثم المحاولة.',
     unavailable: 'الحسابات غير متاحة حالياً. يمكنك متابعة التسوق كزائر.', generic: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
     logoutError: 'تعذّر تسجيل الخروج. يرجى المحاولة مرة أخرى.', authDown: 'الحسابات غير متاحة',
+    verifyTitle: 'تأكيد بريدك الإلكتروني.', verifyLead: 'أكّد أن عنوان البريد الإلكتروني هذا يخصّك.',
+    pendingEmail: 'البريد الإلكتروني غير مؤكّد', verifiedEmail: 'تم تأكيد البريد الإلكتروني',
+    pendingLead: 'تم إنشاء حسابك، لكن بريدك الإلكتروني لم يُؤكّد بعد. يمكنك متابعة التسوق.',
+    checkInbox: 'تحقّق من صندوق الوارد والبريد غير المرغوب فيه. تنتهي صلاحية الرابط بعد ساعة، ويعمل أحدث رابط فقط.',
+    sentEmail: 'تم إرسال رسالة التأكيد.',
+    email_unavailable: 'رسائل التأكيد غير متاحة حالياً. لم يتم إرسال أي رسالة. يمكنك متابعة التسوق والمحاولة لاحقاً.',
+    invalid_verification: 'هذا الرابط غير صالح أو منتهي الصلاحية أو مستخدم سابقاً. سجّل الدخول واطلب رابطاً جديداً.',
+    resendEmail: 'إرسال رسالة التأكيد', sendingEmail: 'جارٍ الإرسال…',
+    confirmEmail: 'تأكيد عنوان البريد الإلكتروني', confirmingEmail: 'جارٍ التأكيد…',
+    verifiedLead: 'تم تأكيد عنوان بريدك الإلكتروني.',
+    verifyLogin: 'سجّل الدخول لطلب رسالة تأكيد البريد الإلكتروني.',
+    waitSeconds: 'حاول مجدداً بعد', seconds: 'ثانية',
   },
 };
 type Copy = typeof text.en;
@@ -62,7 +88,7 @@ export const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
 function errorCode(err: unknown): string {
   const e = err as { status?: number; data?: { code?: string } | null } | null;
   const code = e?.data?.code;
-  if (code === 'email_in_use' || code === 'invalid_credentials' || code === 'validation' || code === 'rate_limited' || code === 'unavailable') return code;
+  if (code === 'email_in_use' || code === 'invalid_credentials' || code === 'validation' || code === 'rate_limited' || code === 'unavailable' || code === 'email_unavailable' || code === 'invalid_verification') return code;
   if (code === 'cross_site') return 'generic';
   if (e?.status === 429) return 'rate_limited';
   if (e?.status === 401) return 'invalid_credentials';
@@ -80,13 +106,14 @@ type Ctx = {
   logout: () => Promise<void>;
   loginPending: boolean; signupPending: boolean; logoutPending: boolean;
   refresh: () => void;
+  verificationDelivery: CustomerSession['verificationDelivery'];
 };
 const CustomerAuthContext = createContext<Ctx | null>(null);
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const key = getGetCustomerSessionQueryKey();
-  const session = useGetCustomerSession({ query: { queryKey: key, retry: 1, staleTime: 60_000, throwOnError: false }, request: REQ });
+  const session = useGetCustomerSession({ query: { queryKey: key, retry: 1, staleTime: 60_000, refetchInterval: 60_000, throwOnError: false }, request: REQ });
   const loginM = useLoginCustomer({ request: REQ });
   const signupM = useSignupCustomer({ request: REQ });
   const logoutM = useLogoutCustomer({ request: REQ });
@@ -114,6 +141,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => ({
     user: session.data?.user ?? null, isLoading: session.isLoading, isUnavailable: session.isError && !session.data,
+    verificationDelivery: session.data?.verificationDelivery,
     login, signup, logout, refresh,
     loginPending: loginM.isPending, signupPending: signupM.isPending, logoutPending: logoutM.isPending,
   }), [session.data, session.isLoading, session.isError, login, signup, logout, refresh, loginM.isPending, signupM.isPending, logoutM.isPending]);
@@ -186,6 +214,9 @@ export function CustomerAccountButton({ language }: { language: Language }) {
           <strong data-testid="text-account-name">{user.name}</strong>
           <span><bdi>{user.email}</bdi></span>
         </div>
+        <Link href="/verify-email" role="menuitem" className="ca-menu-item" data-testid="link-account-verification">
+          {user.emailVerified ? t.verifiedEmail : t.pendingEmail}
+        </Link>
         <button type="button" role="menuitem" className="ca-menu-item" onClick={doLogout} disabled={logoutPending} data-testid="button-logout">
           <LogOut size={14} aria-hidden="true"/>{logoutPending ? t.loggingOut : t.logout}
         </button>
@@ -229,7 +260,7 @@ function Mark() {
   </svg>;
 }
 
-function AuthShell({ mode, children, t, prefs }: { mode: 'login' | 'signup'; children: ReactNode; t: Copy; prefs: ReturnType<typeof usePrefs> }) {
+function AuthShell({ mode, children, t, prefs }: { mode: 'login' | 'signup' | 'verify'; children: ReactNode; t: Copy; prefs: ReturnType<typeof usePrefs> }) {
   const { language, setLanguage, theme, setTheme } = prefs;
   const Back = language === 'ar' ? ArrowRight : ArrowLeft;
   return <div className="ca-page">
@@ -251,9 +282,9 @@ function AuthShell({ mode, children, t, prefs }: { mode: 'login' | 'signup'; chi
         <small>{language === 'ar' ? 'اضبط · اسكب · كرر' : 'CALIBRATE · POUR · REPEAT'}</small>
       </aside>
       <section className="ca-card">
-        <div className="ca-eyebrow">{mode === 'login' ? t.eyebrowLogin : t.eyebrowSignup}</div>
-        <h1>{mode === 'login' ? t.loginTitle : t.signupTitle}</h1>
-        <p className="ca-lead">{mode === 'login' ? t.loginLead : t.signupLead}</p>
+        <div className="ca-eyebrow">{mode === 'signup' ? t.eyebrowSignup : t.eyebrowLogin}</div>
+        <h1>{mode === 'verify' ? t.verifyTitle : mode === 'login' ? t.loginTitle : t.signupTitle}</h1>
+        <p className="ca-lead">{mode === 'verify' ? t.verifyLead : mode === 'login' ? t.loginLead : t.signupLead}</p>
         {children}
       </section>
     </main>
@@ -318,7 +349,7 @@ export function CustomerLoginPage() {
     const v = validate(t, { email, password }, false);
     setErrors(v); setFormError('');
     if (Object.keys(v).length) return;
-    try { await login(email.trim(), password); navigate('/'); }
+    try { const result = await login(email.trim(), password); navigate(result.user?.emailVerified ? '/' : '/verify-email'); }
     catch (err) { setFormError(errorCode(err)); }
   };
   return <AuthShell mode="login" t={t} prefs={prefs}>
@@ -351,7 +382,7 @@ export function CustomerSignupPage() {
     const v = validate(t, { name, email, password }, true);
     setErrors(v); setFormError('');
     if (Object.keys(v).length) return;
-    try { await signup(name.trim(), email.trim(), password); navigate('/'); }
+    try { await signup(name.trim(), email.trim(), password); navigate('/verify-email'); }
     catch (err) { setFormError(errorCode(err)); }
   };
   return <AuthShell mode="signup" t={t} prefs={prefs}>
@@ -365,5 +396,77 @@ export function CustomerSignupPage() {
       </button>
       <p className="ca-switch">{t.haveAccount} <Link href="/login" data-testid="link-to-login">{t.login}</Link></p>
     </form>
+  </AuthShell>;
+}
+
+export function CustomerVerificationPage() {
+  const prefs = usePrefs();
+  const t = text[prefs.language];
+  const { user, isLoading, isUnavailable, verificationDelivery, refresh } = useCustomerAuth();
+  // Keep the challenge in memory only. Fragments never reach HTTP access logs.
+  const [token] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('token'));
+  const [confirmed, setConfirmed] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [failure, setFailure] = useState('');
+  const [wait, setWait] = useState(0);
+  const resend = useResendCustomerVerification({ request: REQ });
+  const confirm = useConfirmCustomerVerification({ request: REQ });
+  useEffect(() => {
+    if (window.location.hash) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+    document.title = `${prefs.language === 'ar' ? 'تأكيد البريد الإلكتروني' : 'Verify email'} | Brew Logic`;
+  }, [prefs.language]);
+  useEffect(() => {
+    if (wait <= 0) return;
+    const timer = window.setTimeout(() => setWait(v => Math.max(0, v - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [wait]);
+  const resendEmail = async () => {
+    if (resend.isPending || wait > 0) return;
+    setFailure(''); setNotice('');
+    try {
+      const result = await resend.mutateAsync();
+      setWait(result.retryAfterSeconds);
+      if (result.status === 'already_verified') refresh();
+      else setNotice('sentEmail');
+    } catch (err) {
+      setFailure(errorCode(err));
+      const retry = (err as { data?: { retryAfterSeconds?: number } })?.data?.retryAfterSeconds;
+      if (typeof retry === 'number' && retry > 0) setWait(retry);
+      refresh();
+    }
+  };
+  const confirmEmail = async () => {
+    if (!token || confirm.isPending || confirmed) return;
+    setFailure('');
+    try {
+      await confirm.mutateAsync({ data: { token } });
+      setConfirmed(true); refresh();
+    } catch (err) { setFailure(errorCode(err)); }
+  };
+  const verified = confirmed || (!token && user?.emailVerified);
+  return <AuthShell mode="verify" t={t} prefs={prefs}>
+    <div className="ca-form ca-verification" data-testid="verification-state">
+      {verified ? <div role="status">
+        <h2>{t.verifiedEmail}</h2><p>{t.verifiedLead}</p>
+      </div> : <>
+        <h2>{t.pendingEmail}</h2>
+        {user && <><p><bdi>{user.email}</bdi></p><p>{t.pendingLead}</p></>}
+        {failure && <p className="ca-alert" role="alert">{t[failure as keyof Copy]}</p>}
+        {!failure && !notice && verificationDelivery === 'unavailable' && <p className="ca-alert" role="status">{t.email_unavailable}</p>}
+        {notice && <p role="status">{t[notice as keyof Copy]} {t.checkInbox}</p>}
+        {!notice && verificationDelivery === 'sent' && <p role="status">{t.checkInbox}</p>}
+        {token && <button type="button" className="primary-button ca-submit" onClick={confirmEmail}
+          disabled={confirm.isPending} aria-busy={confirm.isPending} data-testid="button-confirm-email">
+          {confirm.isPending ? t.confirmingEmail : t.confirmEmail}
+        </button>}
+        {user && !user.emailVerified && <button type="button" className="primary-button ca-submit" onClick={resendEmail}
+          disabled={resend.isPending || wait > 0} aria-busy={resend.isPending} data-testid="button-resend-email">
+          {resend.isPending ? t.sendingEmail : t.resendEmail}
+        </button>}
+        {wait > 0 && <p role="status">{t.waitSeconds} {wait.toLocaleString(prefs.language === 'ar' ? 'ar-KW' : 'en-US')} {t.seconds}</p>}
+        {!user && !isLoading && <p>{isUnavailable ? t.unavailable : t.verifyLogin} <Link href="/login">{t.login}</Link></p>}
+      </>}
+      <Link href="/" className="ca-switch" data-testid="link-verification-shop">{t.back}</Link>
+    </div>
   </AuthShell>;
 }

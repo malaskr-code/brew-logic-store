@@ -16,4 +16,6 @@ export const CustomerAuthErrorCode = {
   rate_limited: 'rate_limited',
   cross_site: 'cross_site',
   unavailable: 'unavailable',
+  invalid_verification: 'invalid_verification',
+  email_unavailable: 'email_unavailable',
 } as const;
