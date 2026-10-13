@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LogOut, Moon, Sun, User } from 'lucide-react';
@@ -134,8 +134,30 @@ export function CustomerAccountButton({ language }: { language: Language }) {
   const [err, setErr] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ left: number; width: number } | null>(null);
   const [location] = useLocation();
   useEffect(() => { setOpen(false); }, [location]);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const positionMenu = () => {
+      if (!wrap.current || !menu.current) return;
+      const anchor = wrap.current.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const width = Math.min(menu.current.offsetWidth, viewportWidth - 24);
+      const preferred = language === 'ar' ? anchor.left : anchor.right - width;
+      const viewportLeft = Math.max(12, Math.min(preferred, viewportWidth - width - 12));
+      const left = viewportLeft - anchor.left;
+      setMenuPosition(previous => previous?.left === left && previous.width === width ? previous : { left, width });
+    };
+    positionMenu();
+    window.addEventListener('resize', positionMenu);
+    window.addEventListener('scroll', positionMenu, true);
+    return () => {
+      window.removeEventListener('resize', positionMenu);
+      window.removeEventListener('scroll', positionMenu, true);
+    };
+  }, [open, language, user?.id, user?.name]);
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => { if (e.target instanceof Node && !wrap.current?.contains(e.target)) setOpen(false); };
@@ -156,7 +178,8 @@ export function CustomerAccountButton({ language }: { language: Language }) {
       <User size={16} strokeWidth={1.8} aria-hidden="true"/>
       {user && <span className="ca-first-name" data-testid="text-account-first-name">{firstName(user.name)}</span>}
     </button>
-    {open && <div className="ca-menu" id="ca-account-menu" role="menu" aria-label={t.account}>
+    {open && <div ref={menu} className="ca-menu" id="ca-account-menu" role="menu" aria-label={t.account}
+      style={menuPosition ? { insetInlineEnd: 'auto', insetInlineStart: 'auto', right: 'auto', left: menuPosition.left, width: menuPosition.width, minWidth: 0 } : undefined}>
       {user ? <>
         <div className="ca-menu-head" role="presentation">
           <small>{t.signedInAs}</small>

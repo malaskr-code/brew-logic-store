@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { randomBytes, randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
+import { GetCustomerSessionResponse, SignupCustomerResponse } from "@workspace/api-zod";
 import { getMongoDatabase, closeMongoDatabase } from "./mongo";
 
 test("live MongoDB catalog migration and customer account API", {
@@ -42,7 +43,8 @@ test("live MongoDB catalog migration and customer account API", {
     assert.ok(response.status === 201, "Signup must succeed with configured MongoDB and JWT secret");
     const raw = await response.text();
     assert.ok(!raw.includes(password) && !raw.includes("passwordHash") && !raw.includes('"token"'), "Credentials must never be returned in JSON");
-    const session = JSON.parse(raw);
+    const session = SignupCustomerResponse.parse(JSON.parse(raw));
+    assert.ok(session.user, "Signup must return a customer");
     assert.ok(session.user.email === email, "Email must be normalized to lowercase");
     const setCookie = response.headers.get("set-cookie") || "";
     assert.ok(/httponly/i.test(setCookie) && /secure/i.test(setCookie) && /samesite=lax/i.test(setCookie) && /max-age=604800/i.test(setCookie), "Cookie must have required protections and seven-day duration");
@@ -54,19 +56,23 @@ test("live MongoDB catalog migration and customer account API", {
     assert.ok(stored.passwordHash !== password && !("password" in stored), "Only the password hash may be stored");
     assert.ok(stored.createdAt instanceof Date && stored.name === "Verification Customer", "User fields must persist");
     assert.ok((await db.collection("users").listIndexes().toArray()).some(index => index.unique && index.key.email === 1), "Email must have a unique index");
-    const me = await (await request("/auth/me", undefined, cookie)).json();
+    const me = GetCustomerSessionResponse.parse(await (await request("/auth/me", undefined, cookie)).json());
     assert.ok(me.user?.id === session.user.id && !("passwordHash" in me.user), "Cookie must restore the safe customer profile");
+    assert.ok((await request("/admin/catalog", undefined, cookie)).status === 401, "Customer login must not grant owner access");
+    assert.ok((await request("/admin/catalog", {}, cookie)).status === 401, "Customer login must not allow catalog changes");
     const duplicate = await request("/auth/signup", { name: "Test", email: email.toUpperCase(), password });
-    assert.ok(duplicate.status === 409 && (await duplicate.json()).code === "email_in_use", "Duplicate email must have a clear error");
+    const duplicateError = await duplicate.json() as { code?: string };
+    assert.ok(duplicate.status === 409 && duplicateError.code === "email_in_use", "Duplicate email must have a clear error");
     for (const credentials of [{ email, password: "wrong-password" }, { email: `missing-${email}`, password }]) {
       const failed = await request("/auth/login", credentials);
-      assert.ok(failed.status === 401 && (await failed.json()).error === "Email or password is incorrect", "Login errors must not reveal which credential failed");
+      const loginError = await failed.json() as { error?: string };
+      assert.ok(failed.status === 401 && loginError.error === "Email or password is incorrect", "Login errors must not reveal which credential failed");
     }
     const login = await request("/auth/login", { email: email.toUpperCase(), password });
     assert.ok(login.status === 200, "Correct credentials must log in");
     const loggedOut = await request("/auth/logout", {}, cookie);
     assert.ok(loggedOut.status === 204 && /expires=Thu, 01 Jan 1970/i.test(loggedOut.headers.get("set-cookie") || ""), "Logout must clear the protected cookie");
-    assert.ok((await (await request("/auth/me")).json()).user === null, "Guest session must remain available");
+    assert.ok(GetCustomerSessionResponse.parse(await (await request("/auth/me")).json()).user === null, "Guest session must remain available");
     const crossSite = await fetch(url + "/auth/logout", { method: "POST", headers: { Origin: "https://unrelated.example", Cookie: cookie } });
     assert.ok(crossSite.status === 403, "Cross-site account changes must be refused");
     const malformed = await fetch(url + "/auth/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: `{"password":"${password}" invalid}` });
