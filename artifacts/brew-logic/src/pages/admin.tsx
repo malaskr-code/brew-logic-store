@@ -4,7 +4,7 @@ import { useAuth, useClerk } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Check, Coffee, Lock, LogOut, Package, Pencil, Plus, RefreshCw, ShieldX, Trash2, X } from 'lucide-react';
 import {
-  useGetAdminCatalog, getGetAdminCatalogQueryKey, getGetCatalogQueryKey,
+  useGetAdminCatalog, getGetAdminCatalogQueryKey, getGetProductsQueryKey, getGetBundlesQueryKey,
   useCreateCatalogEntry, useUpdateCatalogEntry, useDeleteCatalogEntry,
   type CatalogProduct, type CatalogBundle, type CatalogEntryInput,
 } from '@workspace/api-client-react';
@@ -163,7 +163,8 @@ function EditorPanel({ editor, taken, onClose, onSaved }: { editor: Editor; take
     const done = {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetAdminCatalogQueryKey() });
-        queryClient.invalidateQueries({ queryKey: getGetCatalogQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetProductsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetBundlesQueryKey() });
         setPf(emptyProduct); setBf(emptyBundle); setSubmitted(false);
         onSaved(data.id, isNew);
       },
@@ -270,7 +271,8 @@ function ConfirmDelete({ target, onCancel, onDone }: { target: { id: string; nam
     del.mutate({ id: target.id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetAdminCatalogQueryKey() });
-        queryClient.invalidateQueries({ queryKey: getGetCatalogQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetProductsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetBundlesQueryKey() });
         onDone(true, `${target.name} was deleted.`);
       },
       onError: err => setError(errorMessage(err)),

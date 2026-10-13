@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { SendChatMessageBody } from "@workspace/api-zod";
-import { products, bundles } from "@workspace/brew-catalog";
+import { products, bundles } from "./catalog-defaults";
 import { askGroq, buildChatSystemPrompt, ChatRateLimitError, VisitorChatLimiter } from "./chat-service";
 
 test("prompt is built from the site's complete catalog and safety rules", () => {

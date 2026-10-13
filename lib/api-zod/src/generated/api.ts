@@ -9,6 +9,169 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Read all live products
+ */
+export const getProductsResponseIdMax = 80;
+
+
+export const getProductsResponseIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getProductsResponseNameMax = 160;
+
+export const getProductsResponsePriceMin = 0;
+export const getProductsResponsePriceMax = 100000;
+
+export const getProductsResponseImageMax = 2000;
+
+export const getProductsResponseDescriptionMax = 2000;
+
+export const getProductsResponseWhyMax = 2000;
+
+export const getProductsResponseDescriptionArMax = 2000;
+
+export const getProductsResponseWhyArMax = 2000;
+
+export const getProductsResponseDetailDescriptionMax = 4000;
+
+export const getProductsResponseDetailDescriptionArMax = 4000;
+
+export const getProductsResponseOriginMax = 200;
+
+export const getProductsResponseOriginArMax = 200;
+
+export const getProductsResponseBagSizeMax = 80;
+
+
+
+export const GetProductsResponseItem = zod.object({
+  "id": zod.string().max(getProductsResponseIdMax).regex(getProductsResponseIdRegExp),
+  "name": zod.string().min(1).max(getProductsResponseNameMax),
+  "price": zod.number().min(getProductsResponsePriceMin).max(getProductsResponsePriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(getProductsResponseImageMax),
+  "description": zod.string().max(getProductsResponseDescriptionMax),
+  "why": zod.string().max(getProductsResponseWhyMax),
+  "descriptionAr": zod.string().max(getProductsResponseDescriptionArMax).optional(),
+  "whyAr": zod.string().max(getProductsResponseWhyArMax).optional(),
+  "detailDescription": zod.string().max(getProductsResponseDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(getProductsResponseDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(getProductsResponseOriginMax).optional(),
+  "originAr": zod.string().max(getProductsResponseOriginArMax).optional(),
+  "bagSize": zod.string().max(getProductsResponseBagSizeMax).optional()
+})
+export const GetProductsResponse = zod.array(GetProductsResponseItem)
+
+
+/**
+ * @summary Read all live bundles
+ */
+export const getBundlesResponseIdMax = 80;
+
+
+export const getBundlesResponseIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getBundlesResponseNameMax = 160;
+
+export const getBundlesResponsePriceMin = 0;
+export const getBundlesResponsePriceMax = 100000;
+
+export const getBundlesResponseRegularMin = 0;
+export const getBundlesResponseRegularMax = 100000;
+
+export const getBundlesResponseItemsItemMax = 160;
+
+export const getBundlesResponseItemsMax = 30;
+
+export const getBundlesResponseNoteMax = 2000;
+
+export const getBundlesResponseNoteArMax = 2000;
+
+
+
+export const GetBundlesResponseItem = zod.object({
+  "id": zod.string().max(getBundlesResponseIdMax).regex(getBundlesResponseIdRegExp),
+  "name": zod.string().min(1).max(getBundlesResponseNameMax),
+  "price": zod.number().min(getBundlesResponsePriceMin).max(getBundlesResponsePriceMax),
+  "regular": zod.number().min(getBundlesResponseRegularMin).max(getBundlesResponseRegularMax),
+  "items": zod.array(zod.string().min(1).max(getBundlesResponseItemsItemMax)).min(1).max(getBundlesResponseItemsMax),
+  "note": zod.string().max(getBundlesResponseNoteMax),
+  "noteAr": zod.string().max(getBundlesResponseNoteArMax).optional()
+})
+export const GetBundlesResponse = zod.array(GetBundlesResponseItem)
+
+
+/**
+ * @summary Create a customer account and session
+ */
+export const signupCustomerBodyOneEmailMax = 254;
+
+export const signupCustomerBodyOnePasswordMin = 8;
+export const signupCustomerBodyOnePasswordMax = 72;
+
+export const signupCustomerBodyTwoNameMax = 100;
+
+
+
+export const SignupCustomerBody = zod.object({
+  "email": zod.string().email().max(signupCustomerBodyOneEmailMax),
+  "password": zod.string().min(signupCustomerBodyOnePasswordMin).max(signupCustomerBodyOnePasswordMax)
+}).and(zod.object({
+  "name": zod.string().min(1).max(signupCustomerBodyTwoNameMax)
+}))
+
+export const SignupCustomerResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string().email(),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Start a seven-day customer session
+ */
+export const loginCustomerBodyEmailMax = 254;
+
+export const loginCustomerBodyPasswordMin = 8;
+export const loginCustomerBodyPasswordMax = 72;
+
+
+
+export const LoginCustomerBody = zod.object({
+  "email": zod.string().email().max(loginCustomerBodyEmailMax),
+  "password": zod.string().min(loginCustomerBodyPasswordMin).max(loginCustomerBodyPasswordMax)
+})
+
+export const LoginCustomerResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string().email(),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Clear the customer session cookie
+ */
+export const LogoutCustomerResponse = zod.void()
+
+
+/**
+ * @summary Read the signed-in customer, or null
+ */
+export const GetCustomerSessionResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string().email(),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+})
+
+
+/**
  * @summary Read the live Brew Logic catalog
  */
 export const getCatalogResponseProductsItemIdMax = 80;

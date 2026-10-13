@@ -11,6 +11,106 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /products:
+    get:
+      operationId: getProducts
+      summary: Read all live products
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CatalogProduct" }
+        "503": { description: Database unavailable }
+  /bundles:
+    get:
+      operationId: getBundles
+      summary: Read all live bundles
+      responses:
+        "200":
+          description: Bundles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CatalogBundle" }
+        "503": { description: Database unavailable }
+  /auth/signup:
+    post:
+      operationId: signupCustomer
+      summary: Create a customer account and session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerSignupInput" }
+      responses:
+        "201":
+          description: Signed up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerSession" }
+        "400":
+          description: Invalid fields
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "403": { description: Cross-site request refused }
+        "429": { description: Too many attempts }
+        "503": { description: Authentication unavailable }
+  /auth/login:
+    post:
+      operationId: loginCustomer
+      summary: Start a seven-day customer session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerLoginInput" }
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerSession" }
+        "400":
+          description: Invalid fields
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "401":
+          description: Incorrect credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerAuthError" }
+        "403": { description: Cross-site request refused }
+        "429": { description: Too many attempts }
+        "503": { description: Authentication unavailable }
+  /auth/logout:
+    post:
+      operationId: logoutCustomer
+      summary: Clear the customer session cookie
+      responses:
+        "204": { description: Logged out }
+        "403": { description: Cross-site request refused }
+  /auth/me:
+    get:
+      operationId: getCustomerSession
+      summary: Read the signed-in customer, or null
+      responses:
+        "200":
+          description: Customer session
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerSession" }
+        "503": { description: Authentication unavailable }
   /catalog:
     get:
       operationId: getCatalog
@@ -212,6 +312,41 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    CustomerUser:
+      type: object
+      required: [id, name, email, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        createdAt: { type: string, format: date-time }
+    CustomerSession:
+      type: object
+      required: [user]
+      properties:
+        user:
+          anyOf:
+            - { $ref: "#/components/schemas/CustomerUser" }
+            - { type: "null" }
+    CustomerLoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 72 }
+    CustomerSignupInput:
+      allOf:
+        - { $ref: "#/components/schemas/CustomerLoginInput" }
+        - type: object
+          required: [name]
+          properties:
+            name: { type: string, minLength: 1, maxLength: 100 }
+    CustomerAuthError:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string }
+        code: { type: string, enum: [validation, email_in_use, invalid_credentials, rate_limited, cross_site, unavailable] }
     CatalogResponse:
       type: object
       required: [products, bundles]

@@ -1,4 +1,5 @@
-import { products, bundles, type Product } from "@workspace/brew-catalog";
+import type { Product } from "@workspace/brew-catalog";
+import { products, bundles } from "./catalog-defaults";
 
 // Used once to initialize an empty catalog. Runtime reads never fall back to this data.
 const arabic: Record<string, { description: string; why: string }> = {

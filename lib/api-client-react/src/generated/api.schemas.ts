@@ -5,6 +5,52 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface CustomerUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface CustomerSession {
+  user: CustomerUser | null;
+}
+
+export interface CustomerLoginInput {
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 8
+     * @maxLength 72
+     */
+  password: string;
+}
+
+export type CustomerSignupInput = CustomerLoginInput & {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+};
+
+export type CustomerAuthErrorCode = typeof CustomerAuthErrorCode[keyof typeof CustomerAuthErrorCode];
+
+
+export const CustomerAuthErrorCode = {
+  validation: 'validation',
+  email_in_use: 'email_in_use',
+  invalid_credentials: 'invalid_credentials',
+  rate_limited: 'rate_limited',
+  cross_site: 'cross_site',
+  unavailable: 'unavailable',
+} as const;
+
+export interface CustomerAuthError {
+  error: string;
+  code: CustomerAuthErrorCode;
+}
+
 export type CatalogProductCategory = typeof CatalogProductCategory[keyof typeof CatalogProductCategory];
 
 

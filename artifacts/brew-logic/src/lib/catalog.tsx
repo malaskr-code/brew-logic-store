@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { useGetCatalog, getGetCatalogQueryKey } from '@workspace/api-client-react';
+import { useGetProducts, useGetBundles, getGetProductsQueryKey, getGetBundlesQueryKey } from '@workspace/api-client-react';
 import type { Product, Bundle, CatalogItem } from '@workspace/brew-catalog';
 
 const CatalogContext = createContext<{
@@ -8,19 +8,26 @@ const CatalogContext = createContext<{
 } | null>(null);
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const query = useGetCatalog({
-    query: { queryKey: getGetCatalogQueryKey(), staleTime: 15000, refetchInterval: 60000, refetchOnMount: 'always', refetchOnWindowFocus: true, retry: 1 },
+  const common = { staleTime: 15000, refetchInterval: 60000, refetchOnMount: 'always' as const, refetchOnWindowFocus: true, retry: 1 };
+  const productQuery = useGetProducts({
+    query: { ...common, queryKey: getGetProductsQueryKey() },
+    request: { credentials: 'same-origin' },
+  });
+  const bundleQuery = useGetBundles({
+    query: { ...common, queryKey: getGetBundlesQueryKey() },
     request: { credentials: 'same-origin' },
   });
   const value = useMemo(() => {
-    const products = query.data?.products ?? [];
-    const bundles = query.data?.bundles ?? [];
+    const products = productQuery.data ?? [];
+    const bundles = bundleQuery.data ?? [];
     return {
       products, bundles, catalogItems: [...products, ...bundles],
-      loading: query.isLoading, error: query.isError && !query.data, ready: Boolean(query.data),
-      retry: () => { void query.refetch(); },
+      loading: productQuery.isLoading || bundleQuery.isLoading,
+      error: (productQuery.isError && !productQuery.data) || (bundleQuery.isError && !bundleQuery.data),
+      ready: Boolean(productQuery.data && bundleQuery.data),
+      retry: () => { void productQuery.refetch(); void bundleQuery.refetch(); },
     };
-  }, [query.data, query.isLoading, query.isError, query.refetch]);
+  }, [productQuery.data, bundleQuery.data, productQuery.isLoading, bundleQuery.isLoading, productQuery.isError, bundleQuery.isError, productQuery.refetch, bundleQuery.refetch]);
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }
 

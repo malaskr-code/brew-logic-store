@@ -18,6 +18,7 @@ import type { Product, Bundle, CatalogItem } from '@workspace/brew-catalog';
 import { ChatWidget } from '@/components/chat-widget';
 import { CatalogProvider, useCatalog } from '@/lib/catalog';
 import { AdminAuthProvider, SignInPage, SignUpPage } from '@/lib/admin-auth';
+import { CustomerAuthProvider, CustomerLoginPage, CustomerSignupPage, CustomerAccountButton } from '@/lib/customer-auth';
 import AdminPage from '@/pages/admin';
 
 type Language = 'en' | 'ar';
@@ -410,6 +411,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
         </div>
         <div className="nav-actions">
           <CurrencyDropdown t={t} theme={theme}/>
+          <CustomerAccountButton language={language}/>
           <button className="icon-button" onClick={toggleTheme} aria-label={theme === 'light' ? t.themeDark : t.themeLight} data-testid="button-theme">
             {theme === 'light' ? <Moon size={16}/> : <Sun size={16}/>}
           </button>
@@ -812,6 +814,8 @@ function Router() {
       <Route path="/beans" component={Storefront}/>
       <Route path="/product/:id" component={Storefront}/>
       <Route path="/admin" component={AdminPage}/>
+      <Route path="/login" component={CustomerLoginPage}/>
+      <Route path="/signup" component={CustomerSignupPage}/>
       <Route path="/sign-in/*?" component={SignInPage}/>
       <Route path="/sign-up/*?" component={SignUpPage}/>
       <Route component={NotFound}/>
@@ -826,6 +830,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 
 function App() {
   return <QueryClientProvider client={queryClient}>
+    <CustomerAuthProvider>
     <TooltipProvider>
       <CurrencyProvider>
       <CatalogProvider>
@@ -838,6 +843,7 @@ function App() {
       </CurrencyProvider>
       <Toaster/>
     </TooltipProvider>
+    </CustomerAuthProvider>
   </QueryClientProvider>;
 }
 

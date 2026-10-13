@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { CreateCatalogEntryBody, CreateCatalogEntryResponse, UpdateCatalogEntryBody, UpdateCatalogEntryParams, UpdateCatalogEntryResponse, DeleteCatalogEntryParams, GetCatalogResponse, GetAdminCatalogResponse } from "@workspace/api-zod";
 import { requireAdmin } from "../middlewares/admin";
-import { getCatalog, createCatalogEntry, updateCatalogEntry, deleteCatalogEntry, CatalogInputError, CatalogConflictError } from "../lib/catalog-service";
+import { getCatalog, getProducts, getBundles, createCatalogEntry, updateCatalogEntry, deleteCatalogEntry, CatalogInputError, CatalogConflictError } from "../lib/catalog-service";
 
 const router: IRouter = Router();
 function respondError(req: Request, res: Response, error: unknown) {
@@ -11,6 +11,14 @@ function respondError(req: Request, res: Response, error: unknown) {
   res.status(503).json({ error: "The catalog is unavailable. Please try again." });
 }
 
+router.get("/products", async (req, res): Promise<void> => {
+  res.setHeader("Cache-Control", "no-store");
+  try { res.json(await getProducts()); } catch (error) { respondError(req, res, error); }
+});
+router.get("/bundles", async (req, res): Promise<void> => {
+  res.setHeader("Cache-Control", "no-store");
+  try { res.json(await getBundles()); } catch (error) { respondError(req, res, error); }
+});
 router.get("/catalog", async (req, res): Promise<void> => {
   res.setHeader("Cache-Control", "no-store");
   try { res.json(GetCatalogResponse.parse(await getCatalog())); } catch (error) { respondError(req, res, error); }

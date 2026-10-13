@@ -20,10 +20,16 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CatalogBundle,
   CatalogEntryInput,
+  CatalogProduct,
   CatalogResponse,
   ChatInput,
   ChatReply,
+  CustomerAuthError,
+  CustomerLoginInput,
+  CustomerSession,
+  CustomerSignupInput,
   ExchangeRates,
   GetVisitorGeoParams,
   HealthStatus,
@@ -56,6 +62,487 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetProductsUrl = () => {
+
+
+
+
+  return `/api/products`
+}
+
+/**
+ * @summary Read all live products
+ */
+export const getProducts = async ( options?: Parameters<typeof customFetch>[1]): Promise<CatalogProduct[]> => {
+
+  return customFetch<CatalogProduct[]>(getGetProductsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProductsQueryKey = () => {
+    return [
+    `/api/products`
+    ] as const;
+    }
+
+
+export const getGetProductsQueryOptions = <TData = Awaited<ReturnType<typeof getProducts>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProducts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProductsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProducts>>> = ({ signal }) => getProducts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProducts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProductsQueryResult = NonNullable<Awaited<ReturnType<typeof getProducts>>>
+export type GetProductsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read all live products
+ */
+
+export function useGetProducts<TData = Awaited<ReturnType<typeof getProducts>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProducts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProductsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBundlesUrl = () => {
+
+
+
+
+  return `/api/bundles`
+}
+
+/**
+ * @summary Read all live bundles
+ */
+export const getBundles = async ( options?: Parameters<typeof customFetch>[1]): Promise<CatalogBundle[]> => {
+
+  return customFetch<CatalogBundle[]>(getGetBundlesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBundlesQueryKey = () => {
+    return [
+    `/api/bundles`
+    ] as const;
+    }
+
+
+export const getGetBundlesQueryOptions = <TData = Awaited<ReturnType<typeof getBundles>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBundles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBundlesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBundles>>> = ({ signal }) => getBundles({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBundles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBundlesQueryResult = NonNullable<Awaited<ReturnType<typeof getBundles>>>
+export type GetBundlesQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read all live bundles
+ */
+
+export function useGetBundles<TData = Awaited<ReturnType<typeof getBundles>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBundles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBundlesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSignupCustomerUrl = () => {
+
+
+
+
+  return `/api/auth/signup`
+}
+
+/**
+ * @summary Create a customer account and session
+ */
+export const signupCustomer = async (customerSignupInput: CustomerSignupInput, options?: Parameters<typeof customFetch>[1]): Promise<CustomerSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CustomerSession>(getSignupCustomerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(customerSignupInput)
+  }
+);}
+
+
+
+
+
+export const getSignupCustomerMutationKey = () => ['signupCustomer'] as const;
+
+export const getSignupCustomerMutationOptions = <TError = ErrorType<CustomerAuthError | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupCustomer>>, TError,SignupCustomerMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signupCustomer>>, TError,SignupCustomerMutationVariables, TContext> => {
+
+const mutationKey = getSignupCustomerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signupCustomer>>, SignupCustomerMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  signupCustomer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignupCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof signupCustomer>>>
+    export type SignupCustomerMutationBody = BodyType<CustomerSignupInput>
+    export type SignupCustomerMutationError = ErrorType<CustomerAuthError | void>
+    export type SignupCustomerMutationVariables = {data: BodyType<CustomerSignupInput>}
+
+    /**
+ * @summary Create a customer account and session
+ */
+export const useSignupCustomer = <TError = ErrorType<CustomerAuthError | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupCustomer>>, TError,SignupCustomerMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof signupCustomer>>,
+        TError,
+        SignupCustomerMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSignupCustomerMutationOptions(options));
+    }
+
+export const getLoginCustomerUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+/**
+ * @summary Start a seven-day customer session
+ */
+export const loginCustomer = async (customerLoginInput: CustomerLoginInput, options?: Parameters<typeof customFetch>[1]): Promise<CustomerSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CustomerSession>(getLoginCustomerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(customerLoginInput)
+  }
+);}
+
+
+
+
+
+export const getLoginCustomerMutationKey = () => ['loginCustomer'] as const;
+
+export const getLoginCustomerMutationOptions = <TError = ErrorType<CustomerAuthError | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginCustomer>>, TError,LoginCustomerMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof loginCustomer>>, TError,LoginCustomerMutationVariables, TContext> => {
+
+const mutationKey = getLoginCustomerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginCustomer>>, LoginCustomerMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  loginCustomer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof loginCustomer>>>
+    export type LoginCustomerMutationBody = BodyType<CustomerLoginInput>
+    export type LoginCustomerMutationError = ErrorType<CustomerAuthError | void>
+    export type LoginCustomerMutationVariables = {data: BodyType<CustomerLoginInput>}
+
+    /**
+ * @summary Start a seven-day customer session
+ */
+export const useLoginCustomer = <TError = ErrorType<CustomerAuthError | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginCustomer>>, TError,LoginCustomerMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof loginCustomer>>,
+        TError,
+        LoginCustomerMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLoginCustomerMutationOptions(options));
+    }
+
+export const getLogoutCustomerUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Clear the customer session cookie
+ */
+export const logoutCustomer = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getLogoutCustomerUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLogoutCustomerMutationKey = () => ['logoutCustomer'] as const;
+
+export const getLogoutCustomerMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutCustomer>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logoutCustomer>>, TError,void, TContext> => {
+
+const mutationKey = getLogoutCustomerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logoutCustomer>>, void> = () => {
+
+
+          return  logoutCustomer(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof logoutCustomer>>>
+
+    export type LogoutCustomerMutationError = ErrorType<void>
+
+
+    /**
+ * @summary Clear the customer session cookie
+ */
+export const useLogoutCustomer = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutCustomer>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logoutCustomer>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutCustomerMutationOptions(options));
+    }
+
+export const getGetCustomerSessionUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * @summary Read the signed-in customer, or null
+ */
+export const getCustomerSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<CustomerSession> => {
+
+  return customFetch<CustomerSession>(getGetCustomerSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomerSessionQueryKey = () => {
+    return [
+    `/api/auth/me`
+    ] as const;
+    }
+
+
+export const getGetCustomerSessionQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerSession>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomerSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerSession>>> = ({ signal }) => getCustomerSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomerSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerSession>>>
+export type GetCustomerSessionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read the signed-in customer, or null
+ */
+
+export function useGetCustomerSession<TData = Awaited<ReturnType<typeof getCustomerSession>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomerSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetCatalogUrl = () => {
 
