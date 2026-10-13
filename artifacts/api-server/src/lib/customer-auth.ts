@@ -4,16 +4,9 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { MongoServerError, ObjectId, type Collection } from "mongodb";
 import type { CustomerUser } from "@workspace/api-zod";
 import { getMongoDatabase } from "./mongo";
-import { createCustomerVerification, unavailableVerificationSender } from "./customer-verification";
 
 export type CustomerDocument = {
   _id: ObjectId; name: string; email: string; passwordHash: string; createdAt: Date;
-  emailVerifiedAt?: Date | null;
-  verificationTokenHash?: string;
-  verificationExpiresAt?: Date;
-  verificationLastSentAt?: Date;
-  verificationWindowStartedAt?: Date;
-  verificationSendCount?: number;
 };
 type UserDocument = CustomerDocument;
 export const CUSTOMER_COOKIE = "__Host-brew_customer";
@@ -39,14 +32,13 @@ async function usersCollection() {
   if (!usersPromise) usersPromise = (async () => {
     const users = (await getMongoDatabase()).collection<UserDocument>("users");
     await users.createIndex({ email: 1 }, { unique: true });
-    await users.createIndex({ verificationTokenHash: 1 }, { unique: true, sparse: true });
     return users;
   })().catch(error => { usersPromise = undefined; throw error; });
   return usersPromise;
 }
 
-function publicUser(user: Pick<UserDocument, "_id" | "name" | "email" | "createdAt" | "emailVerifiedAt">): CustomerUser {
-  return { id: user._id.toHexString(), name: user.name, email: user.email, createdAt: user.createdAt, emailVerified: Boolean(user.emailVerifiedAt) };
+function publicUser(user: Pick<UserDocument, "_id" | "name" | "email" | "createdAt">): CustomerUser {
+  return { id: user._id.toHexString(), name: user.name, email: user.email, createdAt: user.createdAt };
 }
 
 function issueSession(user: UserDocument) {
@@ -64,7 +56,7 @@ export async function signupCustomer(input: { name: string; email: string; passw
   if (await users.findOne({ email }, { projection: { _id: 1 } })) throw new EmailInUseError();
   const user: UserDocument = {
     _id: new ObjectId(), name: input.name.trim(), email,
-    passwordHash: await bcrypt.hash(input.password, 12), createdAt: new Date(), emailVerifiedAt: null,
+    passwordHash: await bcrypt.hash(input.password, 12), createdAt: new Date(),
   };
   try { await users.insertOne(user); } catch (error) {
     if (error instanceof MongoServerError && error.code === 11000) throw new EmailInUseError();
@@ -72,8 +64,6 @@ export async function signupCustomer(input: { name: string; email: string; passw
   }
   return issueSession(user);
 }
-
-export const customerVerification = createCustomerVerification(usersCollection, unavailableVerificationSender);
 
 export async function loginCustomer(input: { email: string; password: string }) {
   signingKey();

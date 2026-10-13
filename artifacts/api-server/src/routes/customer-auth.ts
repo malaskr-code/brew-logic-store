@@ -1,10 +1,8 @@
 import { Router, type Request, type Response, type RequestHandler } from "express";
 import { isIP } from "node:net";
-import { SignupCustomerBody, LoginCustomerBody, SignupCustomerResponse, LoginCustomerResponse, GetCustomerSessionResponse, ConfirmCustomerVerificationBody, ConfirmCustomerVerificationResponse, ResendCustomerVerificationResponse } from "@workspace/api-zod";
+import { SignupCustomerBody, LoginCustomerBody, SignupCustomerResponse, LoginCustomerResponse, GetCustomerSessionResponse } from "@workspace/api-zod";
 import { signupCustomer, loginCustomer, getCustomerSession, CUSTOMER_COOKIE, SESSION_DURATION, customerCookieOptions, EmailInUseError, InvalidCredentialsError, AuthAttemptLimiter, CustomerAuthConfigurationError } from "../lib/customer-auth";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
-import { customerVerification } from "../lib/customer-auth";
-import { EmailDeliveryUnavailableError, InvalidVerificationError, VerificationRateLimitError } from "../lib/customer-verification";
 
 const router = Router();
 const limiter = new AuthAttemptLimiter();
@@ -26,15 +24,6 @@ function ipKey(req: Request) {
 }
 
 function errorResponse(req: Request, res: Response, error: unknown) {
-  if (error instanceof EmailDeliveryUnavailableError) {
-    res.setHeader("Retry-After", "60");
-    res.status(503).json({ error: "Verification email delivery is unavailable. You can keep shopping.", code: "email_unavailable", retryAfterSeconds: 60 }); return;
-  }
-  if (error instanceof InvalidVerificationError) { res.status(400).json({ error: "Verification link is invalid or expired.", code: "invalid_verification" }); return; }
-  if (error instanceof VerificationRateLimitError) {
-    res.setHeader("Retry-After", String(error.retryAfterSeconds));
-    res.status(429).json({ error: "Please wait before resending.", code: "rate_limited", retryAfterSeconds: error.retryAfterSeconds }); return;
-  }
   if (error instanceof EmailInUseError) { res.status(409).json({ error: "This email is already in use.", code: "email_in_use" }); return; }
   if (error instanceof InvalidCredentialsError) { res.status(401).json({ error: "Email or password is incorrect", code: "invalid_credentials" }); return; }
   if (error instanceof CustomerAuthConfigurationError) req.log.warn({ reason: error.reason }, "JWT signing configuration unavailable");
@@ -55,11 +44,8 @@ router.post("/auth/signup", guardOrigin, async (req, res): Promise<void> => {
   }
   try {
     const session = await signupCustomer(parsed.data);
-    let verificationDelivery: "sent" | "unavailable" = "unavailable";
-    try { await customerVerification.resend(session.user.id); verificationDelivery = "sent"; }
-    catch { req.log.warn("Customer created; verification email could not be delivered"); }
     res.cookie(CUSTOMER_COOKIE, session.token, { ...customerCookieOptions, maxAge: SESSION_DURATION });
-    res.status(201).json(SignupCustomerResponse.parse({ user: session.user, verificationDelivery }));
+    res.status(201).json(SignupCustomerResponse.parse({ user: session.user }));
   } catch (error) { errorResponse(req, res, error); }
 });
 
@@ -93,30 +79,6 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     if (!user && req.cookies?.[CUSTOMER_COOKIE]) res.clearCookie(CUSTOMER_COOKIE, customerCookieOptions);
     res.json(GetCustomerSessionResponse.parse({ user }));
   } catch (error) { errorResponse(req, res, error); }
-});
-
-router.post("/auth/verification/resend", guardOrigin, async (req, res): Promise<void> => {
-  if (!limiter.allow(`resend:${ipKey(req)}`, 20, 60 * 60 * 1000)) {
-    res.setHeader("Retry-After", "3600");
-    res.status(429).json({ error: "Too many attempts.", code: "rate_limited", retryAfterSeconds: 3600 }); return;
-  }
-  try {
-    const user = await getCustomerSession(req.cookies?.[CUSTOMER_COOKIE]);
-    if (!user) { res.status(401).json({ error: "Please log in.", code: "invalid_credentials" }); return; }
-    res.json(ResendCustomerVerificationResponse.parse(await customerVerification.resend(user.id)));
-  } catch (error) { errorResponse(req, res, error); }
-});
-
-router.post("/auth/verification/confirm", guardOrigin, async (req, res): Promise<void> => {
-  if (!limiter.allow(`verify:${ipKey(req)}`, 20, 60 * 1000)) {
-    res.status(429).json({ error: "Too many attempts.", code: "rate_limited" }); return;
-  }
-  const parsed = ConfirmCustomerVerificationBody.safeParse(req.body);
-  if (!req.is("application/json") || !parsed.success) {
-    res.status(400).json({ error: "Verification link is invalid or expired.", code: "invalid_verification" }); return;
-  }
-  try { res.json(ConfirmCustomerVerificationResponse.parse(await customerVerification.confirm(parsed.data.token))); }
-  catch (error) { errorResponse(req, res, error); }
 });
 
 export default router;

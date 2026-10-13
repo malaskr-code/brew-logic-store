@@ -43,6 +43,7 @@ test("live MongoDB catalog migration and customer account API", {
     assert.ok(response.status === 201, "Signup must succeed with configured MongoDB and JWT secret");
     const raw = await response.text();
     assert.ok(!raw.includes(password) && !raw.includes("passwordHash") && !raw.includes('"token"'), "Credentials must never be returned in JSON");
+    assert.ok(!raw.includes("emailVerified") && !raw.includes("verificationDelivery"), "Signup must not expose customer verification state");
     const session = SignupCustomerResponse.parse(JSON.parse(raw));
     assert.ok(session.user, "Signup must return a customer");
     assert.ok(session.user.email === email, "Email must be normalized to lowercase");
@@ -55,6 +56,7 @@ test("live MongoDB catalog migration and customer account API", {
     assert.ok(stored && typeof stored.passwordHash === "string" && /^\$2[aby]\$(1[0-9]|[2-9][0-9])\$/.test(stored.passwordHash), "Password must use bcrypt cost >=10");
     assert.ok(stored.passwordHash !== password && !("password" in stored), "Only the password hash may be stored");
     assert.ok(stored.createdAt instanceof Date && stored.name === "Verification Customer", "User fields must persist");
+    assert.ok(!Object.keys(stored).some(key => key.startsWith("verification") || key === "emailVerifiedAt"), "New accounts must not store email-verification fields");
     assert.ok((await db.collection("users").listIndexes().toArray()).some(index => index.unique && index.key.email === 1), "Email must have a unique index");
     const me = GetCustomerSessionResponse.parse(await (await request("/auth/me", undefined, cookie)).json());
     assert.ok(me.user?.id === session.user.id && !("passwordHash" in me.user), "Cookie must restore the safe customer profile");
@@ -75,6 +77,9 @@ test("live MongoDB catalog migration and customer account API", {
     assert.ok(GetCustomerSessionResponse.parse(await (await request("/auth/me")).json()).user === null, "Guest session must remain available");
     const crossSite = await fetch(url + "/auth/logout", { method: "POST", headers: { Origin: "https://unrelated.example", Cookie: cookie } });
     assert.ok(crossSite.status === 403, "Cross-site account changes must be refused");
+    for (const path of ["/auth/verification/resend", "/auth/verification/confirm"]) {
+      assert.ok((await request(path, {})).status === 404, "Removed customer verification routes must not be available");
+    }
     const malformed = await fetch(url + "/auth/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: `{"password":"${password}" invalid}` });
     assert.ok(malformed.status === 400 && !(await malformed.text()).includes(password), "Parser errors must never echo passwords");
   } catch {

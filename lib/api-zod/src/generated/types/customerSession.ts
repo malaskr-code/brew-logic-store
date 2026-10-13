@@ -5,11 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { CustomerSessionVerificationDelivery } from './customerSessionVerificationDelivery';
 import type { CustomerUser } from './customerUser';
 
 export interface CustomerSession {
-  /** Returned on signup; unavailable never means an email was sent. */
-  verificationDelivery?: CustomerSessionVerificationDelivery;
   user: CustomerUser | null;
 }

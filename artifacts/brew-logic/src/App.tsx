@@ -18,7 +18,7 @@ import type { Product, Bundle, CatalogItem } from '@workspace/brew-catalog';
 import { ChatWidget } from '@/components/chat-widget';
 import { CatalogProvider, useCatalog } from '@/lib/catalog';
 import { AdminAuthProvider, SignInPage, SignUpPage } from '@/lib/admin-auth';
-import { CustomerAuthProvider, CustomerLoginPage, CustomerSignupPage, CustomerVerificationPage, CustomerAccountButton } from '@/lib/customer-auth';
+import { CustomerAuthProvider, CustomerLoginPage, CustomerSignupPage, CustomerAccountButton } from '@/lib/customer-auth';
 import AdminPage from '@/pages/admin';
 
 type Language = 'en' | 'ar';
@@ -816,7 +816,6 @@ function Router() {
       <Route path="/admin" component={AdminPage}/>
       <Route path="/login" component={CustomerLoginPage}/>
       <Route path="/signup" component={CustomerSignupPage}/>
-      <Route path="/verify-email" component={CustomerVerificationPage}/>
       <Route path="/sign-in/*?" component={SignInPage}/>
       <Route path="/sign-up/*?" component={SignUpPage}/>
       <Route component={NotFound}/>

@@ -11,6 +11,4 @@ export interface CustomerUser {
   name: string;
   email: string;
   createdAt: Date;
-  /** False for legacy accounts until ownership is proven */
-  emailVerified: boolean;
 }

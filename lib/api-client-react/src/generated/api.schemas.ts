@@ -10,59 +10,10 @@ export interface CustomerUser {
   name: string;
   email: string;
   createdAt: string;
-  /** False for legacy accounts until ownership is proven */
-  emailVerified: boolean;
 }
-
-/**
- * Returned on signup; unavailable never means an email was sent.
- */
-export type CustomerSessionVerificationDelivery = typeof CustomerSessionVerificationDelivery[keyof typeof CustomerSessionVerificationDelivery];
-
-
-export const CustomerSessionVerificationDelivery = {
-  sent: 'sent',
-  unavailable: 'unavailable',
-} as const;
 
 export interface CustomerSession {
-  /** Returned on signup; unavailable never means an email was sent. */
-  verificationDelivery?: CustomerSessionVerificationDelivery;
   user: CustomerUser | null;
-}
-
-export interface CustomerVerificationInput {
-  /**
-     * @minLength 64
-     * @maxLength 64
-     * @pattern ^[a-f0-9]{64}$
-     */
-  token: string;
-}
-
-export type CustomerVerificationResultStatus = typeof CustomerVerificationResultStatus[keyof typeof CustomerVerificationResultStatus];
-
-
-export const CustomerVerificationResultStatus = {
-  verified: 'verified',
-} as const;
-
-export interface CustomerVerificationResult {
-  status: CustomerVerificationResultStatus;
-}
-
-export type CustomerVerificationDeliveryStatus = typeof CustomerVerificationDeliveryStatus[keyof typeof CustomerVerificationDeliveryStatus];
-
-
-export const CustomerVerificationDeliveryStatus = {
-  sent: 'sent',
-  already_verified: 'already_verified',
-} as const;
-
-export interface CustomerVerificationDelivery {
-  status: CustomerVerificationDeliveryStatus;
-  /** @minimum 0 */
-  retryAfterSeconds: number;
 }
 
 export interface CustomerLoginInput {
@@ -93,15 +44,11 @@ export const CustomerAuthErrorCode = {
   rate_limited: 'rate_limited',
   cross_site: 'cross_site',
   unavailable: 'unavailable',
-  invalid_verification: 'invalid_verification',
-  email_unavailable: 'email_unavailable',
 } as const;
 
 export interface CustomerAuthError {
   error: string;
   code: CustomerAuthErrorCode;
-  /** @minimum 0 */
-  retryAfterSeconds?: number;
 }
 
 export type CatalogProductCategory = typeof CatalogProductCategory[keyof typeof CatalogProductCategory];

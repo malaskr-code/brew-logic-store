@@ -10,6 +10,4 @@ import type { CustomerAuthErrorCode } from './customerAuthErrorCode';
 export interface CustomerAuthError {
   error: string;
   code: CustomerAuthErrorCode;
-  /** @minimum 0 */
-  retryAfterSeconds?: number;
 }
