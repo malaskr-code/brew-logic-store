@@ -61,10 +61,13 @@
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius-lg) + 4px);
+}
+
+@theme {
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 }
 
 /* LIGHT MODE */
@@ -823,4 +826,96 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .product-detail-image { height:370px; }
   .product-detail-copy h1 { font-size:27px; }
   .detail-back { margin-bottom:20px; }
+}
+
+:root {
+  --radius: var(--radius-md);
+}
+
+input,
+select,
+textarea,
+.search-field,
+.currency-picker select {
+  border-radius: var(--radius-md);
+}
+
+.top-strip,
+.origin-art {
+  border-radius: var(--radius-lg);
+}
+
+.product-card,
+.bundle-card,
+.product-detail-image,
+.product-detail-copy,
+.product-modal,
+.search-results {
+  border-radius: var(--radius-lg);
+}
+
+.product-card {
+  overflow: hidden;
+}
+
+.product-card-visual .product-visual {
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.cart-drawer,
+.favorites-drawer {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+[dir="rtl"] .cart-drawer,
+[dir="rtl"] .favorites-drawer {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.drop-panel {
+  border-radius: var(--radius-md);
+}
+
+.search-results {
+  overflow: hidden;
+}
+
+.drop-panel a,
+.search-result-image,
+.cart-thumb,
+.favorite-thumb {
+  border-radius: var(--radius-sm);
+}
+
+.add-button,
+.primary-button,
+.search-add-button,
+.quantity button,
+.detail-quantity button,
+.chat-starters button,
+.chat-form button {
+  border-radius: var(--radius-md);
+}
+
+.currency-picker select {
+  border-radius: var(--radius-md);
+}
+
+.tab {
+  border-radius: var(--radius-md);
+}
+
+.cart-count,
+.favorite-count,
+.visual-tag,
+.product-kicker,
+.bundle-num {
+  border-radius: 999px;
+}
+
+input,
+select,
+textarea {
+  border-radius: var(--radius-md);
 }
