@@ -5,7 +5,7 @@ import { products, bundles } from "@workspace/brew-catalog";
 import { askGroq, buildChatSystemPrompt, ChatRateLimitError, VisitorChatLimiter } from "./chat-service";
 
 test("prompt is built from the site's complete catalog and safety rules", () => {
-  const prompt = buildChatSystemPrompt();
+  const prompt = buildChatSystemPrompt({ products, bundles });
   for (const item of [...products, ...bundles]) {
     assert.ok(prompt.includes(item.name));
     assert.ok(prompt.includes(`"priceKWD":${item.price}`));
@@ -44,14 +44,14 @@ test("Groq receives the configured model, only last six messages, and 300 max to
     assert.deepEqual(body.messages.slice(1), history.slice(-6));
     return new Response(JSON.stringify({ choices: [{ message: { content: Array.from({ length: 100 }, () => "word").join(" ") } }] }));
   };
-  const reply = await askGroq(history, { key: "test-only", model: "test-model" }, fetcher);
+  const reply = await askGroq(history, { key: "test-only", model: "test-model" }, { products, bundles }, fetcher);
   assert.equal(reply.split(/\s+/).length, 79);
 });
 
 test("Groq rate limits and failures are handled without returning upstream details", async () => {
   const history = [{ role: "user" as const, content: "Hello" }];
-  await assert.rejects(askGroq(history, { key: "test-only", model: "test-model" },
+  await assert.rejects(askGroq(history, { key: "test-only", model: "test-model" }, { products, bundles },
     async () => new Response("private provider details", { status: 429 })), ChatRateLimitError);
-  await assert.rejects(askGroq(history, { key: "test-only", model: "test-model" },
+  await assert.rejects(askGroq(history, { key: "test-only", model: "test-model" }, { products, bundles },
     async () => new Response("private provider details", { status: 500 })), /Chat provider unavailable/);
 });

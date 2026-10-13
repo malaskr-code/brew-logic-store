@@ -1,0 +1,9 @@
+.brew-auth-page { min-height:100dvh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:24px; padding:36px 20px; background:var(--paper); color:var(--ink); }
+.brew-auth-back { color:var(--ink); font-size:13px; }
+.brew-auth-root { width:100%; display:flex; justify-content:center; }
+.brew-auth-card { width:440px; max-width:100%; overflow:hidden; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--line); }
+.brew-auth-inner { background:transparent!important; box-shadow:none!important; border:0!important; }
+.brew-auth-strong { color:var(--ink)!important; }
+.brew-auth-muted { color:var(--muted)!important; }
+.brew-auth-link { color:var(--olive)!important; }
+.cl-formFieldInput::placeholder { color:var(--muted); opacity:1; }

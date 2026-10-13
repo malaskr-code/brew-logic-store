@@ -11,6 +11,115 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /catalog:
+    get:
+      operationId: getCatalog
+      summary: Read the live Brew Logic catalog
+      responses:
+        "200":
+          description: Products and bundles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogResponse"
+        "503":
+          description: Database unavailable
+  /admin/catalog:
+    get:
+      operationId: getAdminCatalog
+      summary: Read the catalog after verifying administrator access
+      responses:
+        "200":
+          description: Administrator catalog
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogResponse"
+        "401":
+          description: Sign in required
+        "403":
+          description: Administrator access required
+        "503":
+          description: Database unavailable
+    post:
+      operationId: createCatalogEntry
+      summary: Create a product or bundle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntryInput"
+        "400":
+          description: Invalid catalog entry
+        "401":
+          description: Sign in required
+        "403":
+          description: Administrator access required
+        "409":
+          description: Identifier already exists
+        "503":
+          description: Database unavailable
+  /admin/catalog/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          maxLength: 80
+    put:
+      operationId: updateCatalogEntry
+      summary: Replace a product or bundle without changing its identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogEntryInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntryInput"
+        "400":
+          description: Invalid catalog entry
+        "401":
+          description: Sign in required
+        "403":
+          description: Administrator access required
+        "404":
+          description: Entry not found
+        "409":
+          description: Product name already exists
+        "503":
+          description: Database unavailable
+    delete:
+      operationId: deleteCatalogEntry
+      summary: Remove a product or bundle
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Sign in required
+        "403":
+          description: Administrator access required
+        "404":
+          description: Entry not found
+        "409":
+          description: Product is included in a bundle
+        "503":
+          description: Database unavailable
   /geo:
     get:
       operationId: getVisitorGeo
@@ -103,6 +212,69 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    CatalogResponse:
+      type: object
+      required: [products, bundles]
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogProduct"
+        bundles:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogBundle"
+    CatalogProduct:
+      type: object
+      required: [id, name, price, category, image, description, why]
+      properties:
+        id: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", maxLength: 80 }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        price: { type: number, minimum: 0, maximum: 100000 }
+        category: { type: string, enum: [machine, bean] }
+        image: { type: string, minLength: 1, maxLength: 2000 }
+        description: { type: string, maxLength: 2000 }
+        why: { type: string, maxLength: 2000 }
+        descriptionAr: { type: string, maxLength: 2000 }
+        whyAr: { type: string, maxLength: 2000 }
+        detailDescription: { type: string, maxLength: 4000 }
+        detailDescriptionAr: { type: string, maxLength: 4000 }
+        origin: { type: string, maxLength: 200 }
+        originAr: { type: string, maxLength: 200 }
+        bagSize: { type: string, maxLength: 80 }
+    CatalogBundle:
+      type: object
+      required: [id, name, price, regular, items, note]
+      properties:
+        id: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", maxLength: 80 }
+        name: { type: string, minLength: 1, maxLength: 160 }
+        price: { type: number, minimum: 0, maximum: 100000 }
+        regular: { type: number, minimum: 0, maximum: 100000 }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items: { type: string, minLength: 1, maxLength: 160 }
+        note: { type: string, maxLength: 2000 }
+        noteAr: { type: string, maxLength: 2000 }
+    CatalogProductInput:
+      allOf:
+        - $ref: "#/components/schemas/CatalogProduct"
+        - type: object
+          required: [kind]
+          properties:
+            kind: { type: string, enum: [product] }
+    CatalogBundleInput:
+      allOf:
+        - $ref: "#/components/schemas/CatalogBundle"
+        - type: object
+          required: [kind]
+          properties:
+            kind: { type: string, enum: [bundle] }
+    CatalogEntryInput:
+      oneOf:
+        - $ref: "#/components/schemas/CatalogProductInput"
+        - $ref: "#/components/schemas/CatalogBundleInput"
     VisitorGeo:
       type: object
       required: [countryCode, currency]

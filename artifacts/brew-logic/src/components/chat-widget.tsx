@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { sendChatMessage, type ChatMessage } from '@workspace/api-client-react';
-import { catalogItems } from '@workspace/brew-catalog';
+import type { CatalogItem } from '@workspace/brew-catalog';
+import { useCatalog } from '@/lib/catalog';
 import './chat-widget.css';
 
 type StoredMessage = ChatMessage & { failed?: boolean };
@@ -35,10 +36,6 @@ function readConversation(): StoredMessage[] {
   } catch { return []; }
 }
 
-const productNames = [...catalogItems].sort((a, b) => b.name.length - a.name.length);
-const namePattern = new RegExp(`(${productNames.map(item => item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-const productByName = new Map(catalogItems.map(item => [item.name.toLowerCase(), item]));
-
 type ChatState = { messages: StoredMessage[]; pending: boolean };
 let chatState: ChatState = { messages: readConversation(), pending: false };
 const listeners = new Set<(state: ChatState) => void>();
@@ -49,7 +46,11 @@ function updateConversation(messages: StoredMessage[], pending: boolean) {
   listeners.forEach(listener => listener(chatState));
 }
 
-function linkedAnswer(content: string, onNavigate: () => void): ReactNode {
+function linkedAnswer(content: string, onNavigate: () => void, catalogItems: CatalogItem[]): ReactNode {
+  if (!catalogItems.length) return content;
+  const productNames = [...catalogItems].sort((a, b) => b.name.length - a.name.length);
+  const namePattern = new RegExp(`(${productNames.map(item => item.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const productByName = new Map(catalogItems.map(item => [item.name.toLowerCase(), item]));
   return content.split(namePattern).map((part, index) => {
     const product = productByName.get(part.toLowerCase());
     return product
@@ -59,6 +60,7 @@ function linkedAnswer(content: string, onNavigate: () => void): ReactNode {
 }
 
 export function ChatWidget({ language, onNavigate }: { language: 'en' | 'ar'; onNavigate: () => void }) {
+  const { catalogItems } = useCatalog();
   const t = text[language];
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<ChatState>(chatState);
@@ -119,7 +121,7 @@ export function ChatWidget({ language, onNavigate }: { language: 'en' | 'ar'; on
         {messages.length === 0 && <div className="chat-starters">{t.starters.map((question, index) =>
           <button key={question} onClick={() => void send(question)} disabled={pending} data-testid={`button-chat-starter-${index}`}>{question}</button>)}</div>}
         {messages.map((message, index) => <div key={index} className={`chat-bubble ${message.role}${message.failed ? ' chat-error' : ''}`} dir="auto" data-testid={`chat-message-${index}`}>
-          {message.role === 'assistant' ? linkedAnswer(message.content, followProduct) : message.content}
+          {message.role === 'assistant' ? linkedAnswer(message.content, followProduct, catalogItems) : message.content}
         </div>)}
         {pending && <div className="chat-typing" role="status" data-testid="chat-typing"><span/><span/><span/><small>{t.typing}</small></div>}
         <div ref={endRef}/>

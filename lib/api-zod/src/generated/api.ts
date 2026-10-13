@@ -9,6 +9,526 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Read the live Brew Logic catalog
+ */
+export const getCatalogResponseProductsItemIdMax = 80;
+
+
+export const getCatalogResponseProductsItemIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getCatalogResponseProductsItemNameMax = 160;
+
+export const getCatalogResponseProductsItemPriceMin = 0;
+export const getCatalogResponseProductsItemPriceMax = 100000;
+
+export const getCatalogResponseProductsItemImageMax = 2000;
+
+export const getCatalogResponseProductsItemDescriptionMax = 2000;
+
+export const getCatalogResponseProductsItemWhyMax = 2000;
+
+export const getCatalogResponseProductsItemDescriptionArMax = 2000;
+
+export const getCatalogResponseProductsItemWhyArMax = 2000;
+
+export const getCatalogResponseProductsItemDetailDescriptionMax = 4000;
+
+export const getCatalogResponseProductsItemDetailDescriptionArMax = 4000;
+
+export const getCatalogResponseProductsItemOriginMax = 200;
+
+export const getCatalogResponseProductsItemOriginArMax = 200;
+
+export const getCatalogResponseProductsItemBagSizeMax = 80;
+
+export const getCatalogResponseBundlesItemIdMax = 80;
+
+
+export const getCatalogResponseBundlesItemIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getCatalogResponseBundlesItemNameMax = 160;
+
+export const getCatalogResponseBundlesItemPriceMin = 0;
+export const getCatalogResponseBundlesItemPriceMax = 100000;
+
+export const getCatalogResponseBundlesItemRegularMin = 0;
+export const getCatalogResponseBundlesItemRegularMax = 100000;
+
+export const getCatalogResponseBundlesItemItemsItemMax = 160;
+
+export const getCatalogResponseBundlesItemItemsMax = 30;
+
+export const getCatalogResponseBundlesItemNoteMax = 2000;
+
+export const getCatalogResponseBundlesItemNoteArMax = 2000;
+
+
+
+export const GetCatalogResponse = zod.object({
+  "products": zod.array(zod.object({
+  "id": zod.string().max(getCatalogResponseProductsItemIdMax).regex(getCatalogResponseProductsItemIdRegExp),
+  "name": zod.string().min(1).max(getCatalogResponseProductsItemNameMax),
+  "price": zod.number().min(getCatalogResponseProductsItemPriceMin).max(getCatalogResponseProductsItemPriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(getCatalogResponseProductsItemImageMax),
+  "description": zod.string().max(getCatalogResponseProductsItemDescriptionMax),
+  "why": zod.string().max(getCatalogResponseProductsItemWhyMax),
+  "descriptionAr": zod.string().max(getCatalogResponseProductsItemDescriptionArMax).optional(),
+  "whyAr": zod.string().max(getCatalogResponseProductsItemWhyArMax).optional(),
+  "detailDescription": zod.string().max(getCatalogResponseProductsItemDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(getCatalogResponseProductsItemDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(getCatalogResponseProductsItemOriginMax).optional(),
+  "originAr": zod.string().max(getCatalogResponseProductsItemOriginArMax).optional(),
+  "bagSize": zod.string().max(getCatalogResponseProductsItemBagSizeMax).optional()
+})),
+  "bundles": zod.array(zod.object({
+  "id": zod.string().max(getCatalogResponseBundlesItemIdMax).regex(getCatalogResponseBundlesItemIdRegExp),
+  "name": zod.string().min(1).max(getCatalogResponseBundlesItemNameMax),
+  "price": zod.number().min(getCatalogResponseBundlesItemPriceMin).max(getCatalogResponseBundlesItemPriceMax),
+  "regular": zod.number().min(getCatalogResponseBundlesItemRegularMin).max(getCatalogResponseBundlesItemRegularMax),
+  "items": zod.array(zod.string().min(1).max(getCatalogResponseBundlesItemItemsItemMax)).min(1).max(getCatalogResponseBundlesItemItemsMax),
+  "note": zod.string().max(getCatalogResponseBundlesItemNoteMax),
+  "noteAr": zod.string().max(getCatalogResponseBundlesItemNoteArMax).optional()
+}))
+})
+
+
+/**
+ * @summary Read the catalog after verifying administrator access
+ */
+export const getAdminCatalogResponseProductsItemIdMax = 80;
+
+
+export const getAdminCatalogResponseProductsItemIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getAdminCatalogResponseProductsItemNameMax = 160;
+
+export const getAdminCatalogResponseProductsItemPriceMin = 0;
+export const getAdminCatalogResponseProductsItemPriceMax = 100000;
+
+export const getAdminCatalogResponseProductsItemImageMax = 2000;
+
+export const getAdminCatalogResponseProductsItemDescriptionMax = 2000;
+
+export const getAdminCatalogResponseProductsItemWhyMax = 2000;
+
+export const getAdminCatalogResponseProductsItemDescriptionArMax = 2000;
+
+export const getAdminCatalogResponseProductsItemWhyArMax = 2000;
+
+export const getAdminCatalogResponseProductsItemDetailDescriptionMax = 4000;
+
+export const getAdminCatalogResponseProductsItemDetailDescriptionArMax = 4000;
+
+export const getAdminCatalogResponseProductsItemOriginMax = 200;
+
+export const getAdminCatalogResponseProductsItemOriginArMax = 200;
+
+export const getAdminCatalogResponseProductsItemBagSizeMax = 80;
+
+export const getAdminCatalogResponseBundlesItemIdMax = 80;
+
+
+export const getAdminCatalogResponseBundlesItemIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const getAdminCatalogResponseBundlesItemNameMax = 160;
+
+export const getAdminCatalogResponseBundlesItemPriceMin = 0;
+export const getAdminCatalogResponseBundlesItemPriceMax = 100000;
+
+export const getAdminCatalogResponseBundlesItemRegularMin = 0;
+export const getAdminCatalogResponseBundlesItemRegularMax = 100000;
+
+export const getAdminCatalogResponseBundlesItemItemsItemMax = 160;
+
+export const getAdminCatalogResponseBundlesItemItemsMax = 30;
+
+export const getAdminCatalogResponseBundlesItemNoteMax = 2000;
+
+export const getAdminCatalogResponseBundlesItemNoteArMax = 2000;
+
+
+
+export const GetAdminCatalogResponse = zod.object({
+  "products": zod.array(zod.object({
+  "id": zod.string().max(getAdminCatalogResponseProductsItemIdMax).regex(getAdminCatalogResponseProductsItemIdRegExp),
+  "name": zod.string().min(1).max(getAdminCatalogResponseProductsItemNameMax),
+  "price": zod.number().min(getAdminCatalogResponseProductsItemPriceMin).max(getAdminCatalogResponseProductsItemPriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(getAdminCatalogResponseProductsItemImageMax),
+  "description": zod.string().max(getAdminCatalogResponseProductsItemDescriptionMax),
+  "why": zod.string().max(getAdminCatalogResponseProductsItemWhyMax),
+  "descriptionAr": zod.string().max(getAdminCatalogResponseProductsItemDescriptionArMax).optional(),
+  "whyAr": zod.string().max(getAdminCatalogResponseProductsItemWhyArMax).optional(),
+  "detailDescription": zod.string().max(getAdminCatalogResponseProductsItemDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(getAdminCatalogResponseProductsItemDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(getAdminCatalogResponseProductsItemOriginMax).optional(),
+  "originAr": zod.string().max(getAdminCatalogResponseProductsItemOriginArMax).optional(),
+  "bagSize": zod.string().max(getAdminCatalogResponseProductsItemBagSizeMax).optional()
+})),
+  "bundles": zod.array(zod.object({
+  "id": zod.string().max(getAdminCatalogResponseBundlesItemIdMax).regex(getAdminCatalogResponseBundlesItemIdRegExp),
+  "name": zod.string().min(1).max(getAdminCatalogResponseBundlesItemNameMax),
+  "price": zod.number().min(getAdminCatalogResponseBundlesItemPriceMin).max(getAdminCatalogResponseBundlesItemPriceMax),
+  "regular": zod.number().min(getAdminCatalogResponseBundlesItemRegularMin).max(getAdminCatalogResponseBundlesItemRegularMax),
+  "items": zod.array(zod.string().min(1).max(getAdminCatalogResponseBundlesItemItemsItemMax)).min(1).max(getAdminCatalogResponseBundlesItemItemsMax),
+  "note": zod.string().max(getAdminCatalogResponseBundlesItemNoteMax),
+  "noteAr": zod.string().max(getAdminCatalogResponseBundlesItemNoteArMax).optional()
+}))
+})
+
+
+/**
+ * @summary Create a product or bundle
+ */
+export const createCatalogEntryBodyOneOneIdMax = 80;
+
+
+export const createCatalogEntryBodyOneOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const createCatalogEntryBodyOneOneNameMax = 160;
+
+export const createCatalogEntryBodyOneOnePriceMin = 0;
+export const createCatalogEntryBodyOneOnePriceMax = 100000;
+
+export const createCatalogEntryBodyOneOneImageMax = 2000;
+
+export const createCatalogEntryBodyOneOneDescriptionMax = 2000;
+
+export const createCatalogEntryBodyOneOneWhyMax = 2000;
+
+export const createCatalogEntryBodyOneOneDescriptionArMax = 2000;
+
+export const createCatalogEntryBodyOneOneWhyArMax = 2000;
+
+export const createCatalogEntryBodyOneOneDetailDescriptionMax = 4000;
+
+export const createCatalogEntryBodyOneOneDetailDescriptionArMax = 4000;
+
+export const createCatalogEntryBodyOneOneOriginMax = 200;
+
+export const createCatalogEntryBodyOneOneOriginArMax = 200;
+
+export const createCatalogEntryBodyOneOneBagSizeMax = 80;
+
+export const createCatalogEntryBodyTwoOneIdMax = 80;
+
+
+export const createCatalogEntryBodyTwoOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const createCatalogEntryBodyTwoOneNameMax = 160;
+
+export const createCatalogEntryBodyTwoOnePriceMin = 0;
+export const createCatalogEntryBodyTwoOnePriceMax = 100000;
+
+export const createCatalogEntryBodyTwoOneRegularMin = 0;
+export const createCatalogEntryBodyTwoOneRegularMax = 100000;
+
+export const createCatalogEntryBodyTwoOneItemsItemMax = 160;
+
+export const createCatalogEntryBodyTwoOneItemsMax = 30;
+
+export const createCatalogEntryBodyTwoOneNoteMax = 2000;
+
+export const createCatalogEntryBodyTwoOneNoteArMax = 2000;
+
+
+
+export const CreateCatalogEntryBody = zod.union([zod.object({
+  "id": zod.string().max(createCatalogEntryBodyOneOneIdMax).regex(createCatalogEntryBodyOneOneIdRegExp),
+  "name": zod.string().min(1).max(createCatalogEntryBodyOneOneNameMax),
+  "price": zod.number().min(createCatalogEntryBodyOneOnePriceMin).max(createCatalogEntryBodyOneOnePriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(createCatalogEntryBodyOneOneImageMax),
+  "description": zod.string().max(createCatalogEntryBodyOneOneDescriptionMax),
+  "why": zod.string().max(createCatalogEntryBodyOneOneWhyMax),
+  "descriptionAr": zod.string().max(createCatalogEntryBodyOneOneDescriptionArMax).optional(),
+  "whyAr": zod.string().max(createCatalogEntryBodyOneOneWhyArMax).optional(),
+  "detailDescription": zod.string().max(createCatalogEntryBodyOneOneDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(createCatalogEntryBodyOneOneDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(createCatalogEntryBodyOneOneOriginMax).optional(),
+  "originAr": zod.string().max(createCatalogEntryBodyOneOneOriginArMax).optional(),
+  "bagSize": zod.string().max(createCatalogEntryBodyOneOneBagSizeMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['product'])
+})),zod.object({
+  "id": zod.string().max(createCatalogEntryBodyTwoOneIdMax).regex(createCatalogEntryBodyTwoOneIdRegExp),
+  "name": zod.string().min(1).max(createCatalogEntryBodyTwoOneNameMax),
+  "price": zod.number().min(createCatalogEntryBodyTwoOnePriceMin).max(createCatalogEntryBodyTwoOnePriceMax),
+  "regular": zod.number().min(createCatalogEntryBodyTwoOneRegularMin).max(createCatalogEntryBodyTwoOneRegularMax),
+  "items": zod.array(zod.string().min(1).max(createCatalogEntryBodyTwoOneItemsItemMax)).min(1).max(createCatalogEntryBodyTwoOneItemsMax),
+  "note": zod.string().max(createCatalogEntryBodyTwoOneNoteMax),
+  "noteAr": zod.string().max(createCatalogEntryBodyTwoOneNoteArMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['bundle'])
+}))])
+
+export const createCatalogEntryResponseOneOneIdMax = 80;
+
+
+export const createCatalogEntryResponseOneOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const createCatalogEntryResponseOneOneNameMax = 160;
+
+export const createCatalogEntryResponseOneOnePriceMin = 0;
+export const createCatalogEntryResponseOneOnePriceMax = 100000;
+
+export const createCatalogEntryResponseOneOneImageMax = 2000;
+
+export const createCatalogEntryResponseOneOneDescriptionMax = 2000;
+
+export const createCatalogEntryResponseOneOneWhyMax = 2000;
+
+export const createCatalogEntryResponseOneOneDescriptionArMax = 2000;
+
+export const createCatalogEntryResponseOneOneWhyArMax = 2000;
+
+export const createCatalogEntryResponseOneOneDetailDescriptionMax = 4000;
+
+export const createCatalogEntryResponseOneOneDetailDescriptionArMax = 4000;
+
+export const createCatalogEntryResponseOneOneOriginMax = 200;
+
+export const createCatalogEntryResponseOneOneOriginArMax = 200;
+
+export const createCatalogEntryResponseOneOneBagSizeMax = 80;
+
+export const createCatalogEntryResponseTwoOneIdMax = 80;
+
+
+export const createCatalogEntryResponseTwoOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const createCatalogEntryResponseTwoOneNameMax = 160;
+
+export const createCatalogEntryResponseTwoOnePriceMin = 0;
+export const createCatalogEntryResponseTwoOnePriceMax = 100000;
+
+export const createCatalogEntryResponseTwoOneRegularMin = 0;
+export const createCatalogEntryResponseTwoOneRegularMax = 100000;
+
+export const createCatalogEntryResponseTwoOneItemsItemMax = 160;
+
+export const createCatalogEntryResponseTwoOneItemsMax = 30;
+
+export const createCatalogEntryResponseTwoOneNoteMax = 2000;
+
+export const createCatalogEntryResponseTwoOneNoteArMax = 2000;
+
+
+
+export const CreateCatalogEntryResponse = zod.union([zod.object({
+  "id": zod.string().max(createCatalogEntryResponseOneOneIdMax).regex(createCatalogEntryResponseOneOneIdRegExp),
+  "name": zod.string().min(1).max(createCatalogEntryResponseOneOneNameMax),
+  "price": zod.number().min(createCatalogEntryResponseOneOnePriceMin).max(createCatalogEntryResponseOneOnePriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(createCatalogEntryResponseOneOneImageMax),
+  "description": zod.string().max(createCatalogEntryResponseOneOneDescriptionMax),
+  "why": zod.string().max(createCatalogEntryResponseOneOneWhyMax),
+  "descriptionAr": zod.string().max(createCatalogEntryResponseOneOneDescriptionArMax).optional(),
+  "whyAr": zod.string().max(createCatalogEntryResponseOneOneWhyArMax).optional(),
+  "detailDescription": zod.string().max(createCatalogEntryResponseOneOneDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(createCatalogEntryResponseOneOneDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(createCatalogEntryResponseOneOneOriginMax).optional(),
+  "originAr": zod.string().max(createCatalogEntryResponseOneOneOriginArMax).optional(),
+  "bagSize": zod.string().max(createCatalogEntryResponseOneOneBagSizeMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['product'])
+})),zod.object({
+  "id": zod.string().max(createCatalogEntryResponseTwoOneIdMax).regex(createCatalogEntryResponseTwoOneIdRegExp),
+  "name": zod.string().min(1).max(createCatalogEntryResponseTwoOneNameMax),
+  "price": zod.number().min(createCatalogEntryResponseTwoOnePriceMin).max(createCatalogEntryResponseTwoOnePriceMax),
+  "regular": zod.number().min(createCatalogEntryResponseTwoOneRegularMin).max(createCatalogEntryResponseTwoOneRegularMax),
+  "items": zod.array(zod.string().min(1).max(createCatalogEntryResponseTwoOneItemsItemMax)).min(1).max(createCatalogEntryResponseTwoOneItemsMax),
+  "note": zod.string().max(createCatalogEntryResponseTwoOneNoteMax),
+  "noteAr": zod.string().max(createCatalogEntryResponseTwoOneNoteArMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['bundle'])
+}))])
+
+
+/**
+ * @summary Replace a product or bundle without changing its identifier
+ */
+export const updateCatalogEntryPathIdMax = 80;
+
+
+export const updateCatalogEntryPathIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+
+
+export const UpdateCatalogEntryParams = zod.object({
+  "id": zod.coerce.string().max(updateCatalogEntryPathIdMax).regex(updateCatalogEntryPathIdRegExp)
+})
+
+export const updateCatalogEntryBodyOneOneIdMax = 80;
+
+
+export const updateCatalogEntryBodyOneOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const updateCatalogEntryBodyOneOneNameMax = 160;
+
+export const updateCatalogEntryBodyOneOnePriceMin = 0;
+export const updateCatalogEntryBodyOneOnePriceMax = 100000;
+
+export const updateCatalogEntryBodyOneOneImageMax = 2000;
+
+export const updateCatalogEntryBodyOneOneDescriptionMax = 2000;
+
+export const updateCatalogEntryBodyOneOneWhyMax = 2000;
+
+export const updateCatalogEntryBodyOneOneDescriptionArMax = 2000;
+
+export const updateCatalogEntryBodyOneOneWhyArMax = 2000;
+
+export const updateCatalogEntryBodyOneOneDetailDescriptionMax = 4000;
+
+export const updateCatalogEntryBodyOneOneDetailDescriptionArMax = 4000;
+
+export const updateCatalogEntryBodyOneOneOriginMax = 200;
+
+export const updateCatalogEntryBodyOneOneOriginArMax = 200;
+
+export const updateCatalogEntryBodyOneOneBagSizeMax = 80;
+
+export const updateCatalogEntryBodyTwoOneIdMax = 80;
+
+
+export const updateCatalogEntryBodyTwoOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const updateCatalogEntryBodyTwoOneNameMax = 160;
+
+export const updateCatalogEntryBodyTwoOnePriceMin = 0;
+export const updateCatalogEntryBodyTwoOnePriceMax = 100000;
+
+export const updateCatalogEntryBodyTwoOneRegularMin = 0;
+export const updateCatalogEntryBodyTwoOneRegularMax = 100000;
+
+export const updateCatalogEntryBodyTwoOneItemsItemMax = 160;
+
+export const updateCatalogEntryBodyTwoOneItemsMax = 30;
+
+export const updateCatalogEntryBodyTwoOneNoteMax = 2000;
+
+export const updateCatalogEntryBodyTwoOneNoteArMax = 2000;
+
+
+
+export const UpdateCatalogEntryBody = zod.union([zod.object({
+  "id": zod.string().max(updateCatalogEntryBodyOneOneIdMax).regex(updateCatalogEntryBodyOneOneIdRegExp),
+  "name": zod.string().min(1).max(updateCatalogEntryBodyOneOneNameMax),
+  "price": zod.number().min(updateCatalogEntryBodyOneOnePriceMin).max(updateCatalogEntryBodyOneOnePriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(updateCatalogEntryBodyOneOneImageMax),
+  "description": zod.string().max(updateCatalogEntryBodyOneOneDescriptionMax),
+  "why": zod.string().max(updateCatalogEntryBodyOneOneWhyMax),
+  "descriptionAr": zod.string().max(updateCatalogEntryBodyOneOneDescriptionArMax).optional(),
+  "whyAr": zod.string().max(updateCatalogEntryBodyOneOneWhyArMax).optional(),
+  "detailDescription": zod.string().max(updateCatalogEntryBodyOneOneDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(updateCatalogEntryBodyOneOneDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(updateCatalogEntryBodyOneOneOriginMax).optional(),
+  "originAr": zod.string().max(updateCatalogEntryBodyOneOneOriginArMax).optional(),
+  "bagSize": zod.string().max(updateCatalogEntryBodyOneOneBagSizeMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['product'])
+})),zod.object({
+  "id": zod.string().max(updateCatalogEntryBodyTwoOneIdMax).regex(updateCatalogEntryBodyTwoOneIdRegExp),
+  "name": zod.string().min(1).max(updateCatalogEntryBodyTwoOneNameMax),
+  "price": zod.number().min(updateCatalogEntryBodyTwoOnePriceMin).max(updateCatalogEntryBodyTwoOnePriceMax),
+  "regular": zod.number().min(updateCatalogEntryBodyTwoOneRegularMin).max(updateCatalogEntryBodyTwoOneRegularMax),
+  "items": zod.array(zod.string().min(1).max(updateCatalogEntryBodyTwoOneItemsItemMax)).min(1).max(updateCatalogEntryBodyTwoOneItemsMax),
+  "note": zod.string().max(updateCatalogEntryBodyTwoOneNoteMax),
+  "noteAr": zod.string().max(updateCatalogEntryBodyTwoOneNoteArMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['bundle'])
+}))])
+
+export const updateCatalogEntryResponseOneOneIdMax = 80;
+
+
+export const updateCatalogEntryResponseOneOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const updateCatalogEntryResponseOneOneNameMax = 160;
+
+export const updateCatalogEntryResponseOneOnePriceMin = 0;
+export const updateCatalogEntryResponseOneOnePriceMax = 100000;
+
+export const updateCatalogEntryResponseOneOneImageMax = 2000;
+
+export const updateCatalogEntryResponseOneOneDescriptionMax = 2000;
+
+export const updateCatalogEntryResponseOneOneWhyMax = 2000;
+
+export const updateCatalogEntryResponseOneOneDescriptionArMax = 2000;
+
+export const updateCatalogEntryResponseOneOneWhyArMax = 2000;
+
+export const updateCatalogEntryResponseOneOneDetailDescriptionMax = 4000;
+
+export const updateCatalogEntryResponseOneOneDetailDescriptionArMax = 4000;
+
+export const updateCatalogEntryResponseOneOneOriginMax = 200;
+
+export const updateCatalogEntryResponseOneOneOriginArMax = 200;
+
+export const updateCatalogEntryResponseOneOneBagSizeMax = 80;
+
+export const updateCatalogEntryResponseTwoOneIdMax = 80;
+
+
+export const updateCatalogEntryResponseTwoOneIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export const updateCatalogEntryResponseTwoOneNameMax = 160;
+
+export const updateCatalogEntryResponseTwoOnePriceMin = 0;
+export const updateCatalogEntryResponseTwoOnePriceMax = 100000;
+
+export const updateCatalogEntryResponseTwoOneRegularMin = 0;
+export const updateCatalogEntryResponseTwoOneRegularMax = 100000;
+
+export const updateCatalogEntryResponseTwoOneItemsItemMax = 160;
+
+export const updateCatalogEntryResponseTwoOneItemsMax = 30;
+
+export const updateCatalogEntryResponseTwoOneNoteMax = 2000;
+
+export const updateCatalogEntryResponseTwoOneNoteArMax = 2000;
+
+
+
+export const UpdateCatalogEntryResponse = zod.union([zod.object({
+  "id": zod.string().max(updateCatalogEntryResponseOneOneIdMax).regex(updateCatalogEntryResponseOneOneIdRegExp),
+  "name": zod.string().min(1).max(updateCatalogEntryResponseOneOneNameMax),
+  "price": zod.number().min(updateCatalogEntryResponseOneOnePriceMin).max(updateCatalogEntryResponseOneOnePriceMax),
+  "category": zod.enum(['machine', 'bean']),
+  "image": zod.string().min(1).max(updateCatalogEntryResponseOneOneImageMax),
+  "description": zod.string().max(updateCatalogEntryResponseOneOneDescriptionMax),
+  "why": zod.string().max(updateCatalogEntryResponseOneOneWhyMax),
+  "descriptionAr": zod.string().max(updateCatalogEntryResponseOneOneDescriptionArMax).optional(),
+  "whyAr": zod.string().max(updateCatalogEntryResponseOneOneWhyArMax).optional(),
+  "detailDescription": zod.string().max(updateCatalogEntryResponseOneOneDetailDescriptionMax).optional(),
+  "detailDescriptionAr": zod.string().max(updateCatalogEntryResponseOneOneDetailDescriptionArMax).optional(),
+  "origin": zod.string().max(updateCatalogEntryResponseOneOneOriginMax).optional(),
+  "originAr": zod.string().max(updateCatalogEntryResponseOneOneOriginArMax).optional(),
+  "bagSize": zod.string().max(updateCatalogEntryResponseOneOneBagSizeMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['product'])
+})),zod.object({
+  "id": zod.string().max(updateCatalogEntryResponseTwoOneIdMax).regex(updateCatalogEntryResponseTwoOneIdRegExp),
+  "name": zod.string().min(1).max(updateCatalogEntryResponseTwoOneNameMax),
+  "price": zod.number().min(updateCatalogEntryResponseTwoOnePriceMin).max(updateCatalogEntryResponseTwoOnePriceMax),
+  "regular": zod.number().min(updateCatalogEntryResponseTwoOneRegularMin).max(updateCatalogEntryResponseTwoOneRegularMax),
+  "items": zod.array(zod.string().min(1).max(updateCatalogEntryResponseTwoOneItemsItemMax)).min(1).max(updateCatalogEntryResponseTwoOneItemsMax),
+  "note": zod.string().max(updateCatalogEntryResponseTwoOneNoteMax),
+  "noteAr": zod.string().max(updateCatalogEntryResponseTwoOneNoteArMax).optional()
+}).and(zod.object({
+  "kind": zod.enum(['bundle'])
+}))])
+
+
+/**
+ * @summary Remove a product or bundle
+ */
+export const deleteCatalogEntryPathIdMax = 80;
+
+
+export const deleteCatalogEntryPathIdRegExp = new RegExp('^[a-z0-9]+(?:-[a-z0-9]+)*$');
+
+
+export const DeleteCatalogEntryParams = zod.object({
+  "id": zod.coerce.string().max(deleteCatalogEntryPathIdMax).regex(deleteCatalogEntryPathIdRegExp)
+})
+
+export const DeleteCatalogEntryResponse = zod.void()
+
+
+/**
  * @summary Locate the visitor without exposing the location API URL
  */
 export const GetVisitorGeoQueryParams = zod.object({

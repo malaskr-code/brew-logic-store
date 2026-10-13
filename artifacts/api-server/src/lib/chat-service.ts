@@ -1,16 +1,19 @@
-import { products, bundles } from "@workspace/brew-catalog";
+import type { Product, Bundle } from "@workspace/brew-catalog";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export const BUSY_REPLY = "I'm busy right now. Try again in a minute.";
 
-export function buildChatSystemPrompt() {
+export function buildChatSystemPrompt({ products, bundles }: { products: Product[]; bundles: Bundle[] }) {
   const catalog = [
     ...products.map(product => ({
       id: product.id, name: product.name,
       category: product.category === "machine" ? "Coffee machines & tools" : "Coffee beans",
       priceKWD: product.price,
-      howItWorks: product.category === "bean" ? product.description : product.why,
+      howItWorks: product.why,
       description: product.description,
+      detailDescription: product.detailDescription,
+      origin: product.origin,
+      bagSize: product.bagSize,
       storeNotes: product.why,
     })),
     ...bundles.map(bundle => ({
@@ -37,6 +40,7 @@ export class ChatRateLimitError extends Error {}
 export async function askGroq(
   messages: ChatMessage[],
   config: { key: string; model: string },
+  catalog: { products: Product[]; bundles: Bundle[] },
   fetcher: typeof fetch = fetch,
 ) {
   const response = await fetcher("https://api.groq.com/openai/v1/chat/completions", {
@@ -44,7 +48,7 @@ export async function askGroq(
     headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: config.model,
-      messages: [{ role: "system", content: buildChatSystemPrompt() }, ...messages.slice(-6)],
+      messages: [{ role: "system", content: buildChatSystemPrompt(catalog) }, ...messages.slice(-6)],
       max_tokens: 300,
       temperature: 0,
     }),

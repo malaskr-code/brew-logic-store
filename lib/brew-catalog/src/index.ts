@@ -1,4 +1,9 @@
-export type Product = { id: string; name: string; price: number; category: 'machine' | 'bean'; image: string; description: string; why: string; origin?: string };
+export type Product = {
+  id: string; name: string; price: number; category: 'machine' | 'bean'; image: string; description: string; why: string;
+  descriptionAr?: string; whyAr?: string; detailDescription?: string; detailDescriptionAr?: string;
+  origin?: string; originAr?: string; bagSize?: string;
+};
+export type Bundle = { id: string; name: string; regular: number; price: number; items: string[]; note: string; noteAr?: string };
 
 export const products: Product[] = [
   { id: 'xbloom', name: 'xBloom Studio', price: 199, category: 'machine', image: 'xbloom-photo', description: 'A complete pour-over system, tuned to your recipe.', why: 'It grinds, weighs, and pours following a programmed recipe, so every variable has a place.' },
@@ -13,12 +18,11 @@ export const products: Product[] = [
   { id: 'brazil-samba', name: 'Brazil Samba', price: 3.5, category: 'bean', image: 'bean-bag-photo', description: '250g · Roasted in Kuwait by Brew Logic', why: 'An easygoing Brazilian coffee roasted for a sweet, dependable cup, morning after morning.', origin: '250g · Brew Logic' },
 ];
 
-export const bundles = [
+export const bundles: Bundle[] = [
   { id: 'bundle-morning', name: 'The Automatic Morning', regular: 211.5, price: 199, items: ['xBloom Studio', 'Ethiopia Konga', 'Ethiopia Webanchi'], note: 'A whole recipe, ready to wake up with you.' },
   { id: 'bundle-daily', name: 'The Daily Brewer', regular: 140, price: 132, items: ['Fellow Aiden Precision Coffee Maker', 'Blend Caramel Candy', 'Ethiopia Konga'], note: 'A reliable daily ritual, with room to explore.' },
   { id: 'bundle-precision', name: 'The Precision Set', regular: 81.5, price: 75, items: ['Fellow Stagg EKG Electric Kettle Pro', 'Hario V60 Drip Scale and Timer', 'Brazil Samba'], note: 'The essentials for a deliberate pour-over.' },
 ];
 
-export type Bundle = typeof bundles[number];
 export type CatalogItem = Product | Bundle;
 export const catalogItems: CatalogItem[] = [...products, ...bundles];

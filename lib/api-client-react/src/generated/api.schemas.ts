@@ -5,6 +5,119 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type CatalogProductCategory = typeof CatalogProductCategory[keyof typeof CatalogProductCategory];
+
+
+export const CatalogProductCategory = {
+  machine: 'machine',
+  bean: 'bean',
+} as const;
+
+export interface CatalogProduct {
+  /**
+     * @maxLength 80
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /**
+     * @minimum 0
+     * @maximum 100000
+     */
+  price: number;
+  category: CatalogProductCategory;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  image: string;
+  /** @maxLength 2000 */
+  description: string;
+  /** @maxLength 2000 */
+  why: string;
+  /** @maxLength 2000 */
+  descriptionAr?: string;
+  /** @maxLength 2000 */
+  whyAr?: string;
+  /** @maxLength 4000 */
+  detailDescription?: string;
+  /** @maxLength 4000 */
+  detailDescriptionAr?: string;
+  /** @maxLength 200 */
+  origin?: string;
+  /** @maxLength 200 */
+  originAr?: string;
+  /** @maxLength 80 */
+  bagSize?: string;
+}
+
+export interface CatalogBundle {
+  /**
+     * @maxLength 80
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /**
+     * @minimum 0
+     * @maximum 100000
+     */
+  price: number;
+  /**
+     * @minimum 0
+     * @maximum 100000
+     */
+  regular: number;
+  /**
+     * @minItems 1
+     * @maxItems 30
+     * @items.minLength 1
+     * @items.maxLength 160
+     */
+  items: string[];
+  /** @maxLength 2000 */
+  note: string;
+  /** @maxLength 2000 */
+  noteAr?: string;
+}
+
+export interface CatalogResponse {
+  products: CatalogProduct[];
+  bundles: CatalogBundle[];
+}
+
+export type CatalogProductInputKind = typeof CatalogProductInputKind[keyof typeof CatalogProductInputKind];
+
+
+export const CatalogProductInputKind = {
+  product: 'product',
+} as const;
+
+export type CatalogProductInput = CatalogProduct & {
+  kind: CatalogProductInputKind;
+};
+
+export type CatalogBundleInputKind = typeof CatalogBundleInputKind[keyof typeof CatalogBundleInputKind];
+
+
+export const CatalogBundleInputKind = {
+  bundle: 'bundle',
+} as const;
+
+export type CatalogBundleInput = CatalogBundle & {
+  kind: CatalogBundleInputKind;
+};
+
+export type CatalogEntryInput = CatalogProductInput | CatalogBundleInput;
+
 export interface VisitorGeo {
   /** @nullable */
   countryCode: string | null;

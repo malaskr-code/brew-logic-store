@@ -1,7 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "Brew Logic"
-description = "A responsive coffee equipment and beans storefront for Kuwait, with product category pages, curated bundles, a persistent cart, and Arabic/English plus light/dark modes. Frontend only; no login, database, or payment processing."
+description = "A responsive coffee equipment and beans storefront for Kuwait, backed by a MongoDB catalog with a private Clerk-protected product and bundle editor, persistent cart and favorites, an AI shop assistant, and Arabic/English plus light/dark modes. Checkout remains a demo; no payment processing."
 version = "1.0.0"
 id = "artifacts/brew-logic"
 router = "path"

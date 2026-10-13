@@ -14,8 +14,11 @@ import staggPhoto from '@assets/image_1791649655738.png';
 import harioPhoto from '@assets/image_1791649703321.png';
 import beanBagPhoto from '@assets/image_1791649759965.png';
 import { currencies, CurrencyProvider, useCurrency, type Currency } from '@/lib/currency';
-import { products, bundles, catalogItems, type Product, type Bundle, type CatalogItem } from '@workspace/brew-catalog';
+import type { Product, Bundle, CatalogItem } from '@workspace/brew-catalog';
 import { ChatWidget } from '@/components/chat-widget';
+import { CatalogProvider, useCatalog } from '@/lib/catalog';
+import { AdminAuthProvider, SignInPage, SignUpPage } from '@/lib/admin-auth';
+import AdminPage from '@/pages/admin';
 
 type Language = 'en' | 'ar';
 type CartItem = { id: string; name: string; price: number; image: string; quantity: number; isBundle?: boolean };
@@ -23,8 +26,6 @@ type CartItem = { id: string; name: string; price: number; image: string; quanti
 const queryClient = new QueryClient();
 
 type SearchEntry = { item: CatalogItem; imageKey: string; category: string; searchTerms: string };
-
-const catalogIds = new Set(catalogItems.map(item => item.id));
 
 const productPhotos: Record<string, string> = {
   'xbloom-photo': xbloomPhoto,
@@ -35,6 +36,16 @@ const productPhotos: Record<string, string> = {
   'hario-photo': harioPhoto,
   'bean-bag-photo': beanBagPhoto,
 };
+
+function productPhoto(image: string) {
+  return productPhotos[image] ?? (image.startsWith('https://') ? image : undefined);
+}
+
+function bagSizeLabel(size: string | undefined, language: Language) {
+  const value = size || '250g';
+  const grams = /^(\d+(?:\.\d+)?)g$/.exec(value);
+  return language === 'ar' && grams ? `${Number(grams[1]).toLocaleString('ar-KW')} غرام` : value;
+}
 
 const copy = {
   en: {
@@ -76,6 +87,7 @@ const copy = {
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
     categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Brew Logic. Find a coffee worth slowing down for.',
     noProducts: 'Nothing in this collection yet.',
+    catalogLoading: 'Loading the collection…', catalogError: 'The collection is unavailable. Please try again.', retry: 'Try again',
     equipment: 'Brew equipment', localRoast: '250g · Kuwait roasted', each: 'Each', bundle: 'Bundle', brewStage: 'CALIBRATE · POUR · REPEAT', figure: 'FIG. 01 / POUR-OVER SYSTEM',
   },
   ar: {
@@ -117,55 +129,9 @@ const copy = {
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
     categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Brew Logic. اكتشف قهوة تستحق التمهل.',
     noProducts: 'لا توجد منتجات في هذه المجموعة حالياً.',
+    catalogLoading: 'جارٍ تحميل المجموعة…', catalogError: 'المجموعة غير متاحة الآن. يرجى المحاولة مرة أخرى.', retry: 'حاول مرة أخرى',
     equipment: 'أدوات التحضير', localRoast: '٢٥٠ غرام · تحميص محلي', each: 'للقطعة', bundle: 'مجموعة', brewStage: 'اضبط · اسكب · كرر', figure: 'الشكل ٠١ / تحضير بالتقطير',
   },
-};
-
-const arabicProductCopy: Record<string, { description: string; why: string }> = {
-  xbloom: { description: 'نظام تقطير متكامل، مضبوط على وصفتك.', why: 'يطحن ويزن ويصب وفق وصفة مبرمجة، لتكون لكل متغيرات التحضير قيمة محددة.' },
-  'fellow-aiden': { description: 'تحضير دقيق، بسهولة ضغطة صباحية.', why: 'يتحكم بدرجة حرارة الماء وتوقيت كل مرحلة، ليمنحك قهوة متوازنة كل مرة.' },
-  moccamaster: { description: 'كلاسيكية مدروسة لفناجين تُشارك حول الطاولة.', why: 'يحافظ عنصر التسخين النحاسي على درجة حرارة التحضير لقهوة متوازنة.' },
-  'eureka-filtro': { description: 'مطحنة مخصصة للقهوة المقطرة بمحرك هادئ وفعّال.', why: 'تنتج الشفرات الفولاذية المسطحة حبوباً متجانسة تساعد على استخلاص واضح ومتوازن.' },
-  'stagg-ekg': { description: 'صب دقيق، ودرجة حرارة بين يديك.', why: 'يحافظ متحكم PID على درجة الحرارة المحددة، وفوهة الصب المتوازنة تجعل التحكم طبيعياً.' },
-  'hario-scale': { description: 'قياسان مفيدان، في أداة واحدة.', why: 'يزن القهوة والماء بينما يتابع المؤقت المدمج مدة كل صبّة.' },
-  konga: { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة إثيوبية معبّرة، محمصة محلياً لإبراز نكهتها الحيوية ومتعددة الطبقات.' },
-  webanchi: { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة إثيوبية محمصة بعناية، بفنجان عطري مشرق ونهاية حلوة طويلة.' },
-  'caramel-candy': { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'خلطة يومية مريحة بحلاوة متوازنة تناسب طرق التحضير المختلفة.' },
-  'brazil-samba': { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة برازيلية سلسة، محمصة لفنجان حلو وموثوق كل صباح.' },
-};
-
-const machineDetailCopy: Record<string, { en: string; ar: string }> = {
-  xbloom: {
-    en: 'xBloom Studio brings grinding, weighing, and pouring together in one pour-over system. It follows a programmed recipe through those steps. Each part of the brew has a defined place in the process.',
-    ar: 'يجمع xBloom Studio الطحن والوزن والصب في نظام واحد للتحضير بالتقطير. يتبع وصفة مبرمجة خلال هذه الخطوات. وهكذا يكون لكل مرحلة من التحضير موضع واضح.',
-  },
-  'fellow-aiden': {
-    en: 'Fellow Aiden controls water temperature and timing at each brew stage. These controls help make batch brewing more repeatable. Its ready-to-use routine brings precision into everyday coffee making.',
-    ar: 'يتحكم Fellow Aiden بدرجة حرارة الماء وتوقيت كل مرحلة من مراحل التحضير. تساعد هذه الإعدادات على تكرار النتيجة عند تحضير دفعات القهوة. ويجعل روتينه الجاهز الدقة جزءاً من تحضير القهوة اليومي.',
-  },
-  moccamaster: {
-    en: 'A copper heating element maintains the brew temperature. This supports a steady extraction from one brew to the next. Its straightforward design makes it easy to prepare coffee to share.',
-    ar: 'يحافظ عنصر التسخين النحاسي على درجة حرارة التحضير. ويساعد ذلك على ثبات الاستخلاص من تحضير إلى آخر. ويجعل تصميمه العملي تحضير القهوة ومشاركتها أمراً سهلاً.',
-  },
-  'eureka-filtro': {
-    en: 'The Eureka Filtro is made for filter coffee. Its flat steel burrs grind evenly across the range. This helps make the coffee grounds more consistent for brewing.',
-    ar: 'صُممت Eureka Filtro للقهوة المقطرة. تطحن الشفرات الفولاذية المسطحة القهوة بتجانس عبر نطاق الطحن. ويساعد ذلك على الحصول على طحن أكثر اتساقاً للتحضير.',
-  },
-  'stagg-ekg': {
-    en: 'A PID controller maintains the temperature you select. The balanced spout helps you pour in a measured way. Together, they give you control over water temperature and pouring pace.',
-    ar: 'يحافظ متحكم PID على درجة الحرارة التي تختارها. وتساعد الفوهة المتوازنة على صب الماء بتحكم. ويمنحك ذلك تحكماً بدرجة حرارة الماء وسرعة الصب.',
-  },
-  'hario-scale': {
-    en: 'The scale measures coffee and water as you brew. Its built-in timer tracks the duration of each pour. Both measurements are available together while you prepare your coffee.',
-    ar: 'تزن الأداة القهوة والماء أثناء التحضير. ويتابع المؤقت المدمج مدة كل صبّة. ويجمع ذلك القياس والتوقيت في أداة واحدة.',
-  },
-};
-
-const beanOrigins: Record<string, { en: string; ar: string }> = {
-  konga: { en: 'Ethiopia', ar: 'إثيوبيا' },
-  webanchi: { en: 'Ethiopia', ar: 'إثيوبيا' },
-  'caramel-candy': { en: 'Blend · country not listed', ar: 'خلطة · لم يُذكر بلد المنشأ' },
-  'brazil-samba': { en: 'Brazil', ar: 'البرازيل' },
 };
 
 function detailDescription(item: CatalogItem, language: Language, t: typeof copy.en, money: (price: number) => string) {
@@ -174,24 +140,19 @@ function detailDescription(item: CatalogItem, language: Language, t: typeof copy
       ? `تجمع هذه المجموعة المنتجات التالية: ${item.items.join('، ')}. سعرها الأصلي ${money(item.regular)} وسعرها ${money(item.price)}. بذلك توفّر ${money(item.regular - item.price)}.`
       : `This set brings together ${item.items.join(', ')}. Its regular price is ${money(item.regular)}, and the bundle price is ${money(item.price)}. You save ${money(item.regular - item.price)}.`;
   }
-  if (item.category === 'machine') return machineDetailCopy[item.id]?.[language] ?? `${item.description} ${item.why}`;
-  const origin = beanOrigins[item.id]?.[language] ?? t.originUnlisted;
   return language === 'ar'
-    ? `المنشأ المسجل لهذه القهوة هو ${origin}. يحتوي الكيس على ٢٥٠ غراماً، وتحمّصه Brew Logic في الكويت. لا تتضمن معلومات المنتج ملاحظات تذوق.`
-    : `The listed origin for this coffee is ${origin}. This 250g bag is roasted in Kuwait by Brew Logic. The product information does not include tasting notes.`;
+    ? item.detailDescriptionAr || item.descriptionAr || item.detailDescription || item.description
+    : item.detailDescription || `${item.description} ${item.why}`;
 }
 
 function detailHowLine(item: CatalogItem, language: Language, t: typeof copy.en) {
   if ('items' in item) {
-    if (language === 'en') return item.note;
-    const index = bundles.findIndex(bundle => bundle.id === item.id);
-    return ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] ?? t.bundleNote;
+    return language === 'ar' ? item.noteAr || item.note : item.note;
   }
-  if (item.category === 'bean') return t.roasted;
-  return language === 'ar' ? arabicProductCopy[item.id]?.why ?? item.why : item.why;
+  return language === 'ar' ? item.whyAr || item.why : item.why;
 }
 
-function catalogImageKey(item: CatalogItem) {
+function catalogImageKey(item: CatalogItem, products: Product[]) {
   if ('image' in item) return item.image;
   const featuredProduct = products.find(product => product.name === item.items[0]);
   return featuredProduct?.image ?? 'machine';
@@ -234,7 +195,7 @@ function Logo() {
 
 function ProductIllustration({ product, beanLabel, compact = false, children }: { product: Product | CartItem; beanLabel: string; compact?: boolean; children?: ReactNode }) {
   const image = product.image || 'machine';
-  const photo = productPhotos[image];
+  const photo = productPhoto(image);
   const hasPhoto = Boolean(photo);
   const blendsBackground = image === 'hario-photo' || image === 'bean-bag-photo';
   return <div className={`product-visual${compact ? ' compact' : ''}${hasPhoto ? ' has-photo' : ''}`}>
@@ -261,11 +222,12 @@ function SearchResults({ entries, t, onAdd, onNavigate, id }: {
   entries: SearchEntry[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onNavigate: () => void; id: string;
 }) {
   const { money } = useCurrency();
+  const { loading, error } = useCatalog();
   return <div className="search-results" id={id} role="region" aria-label={t.search}>
-    {entries.length === 0
+    {loading || error ? <div className="search-no-results" role="status">{loading ? t.catalogLoading : t.catalogError}</div> : entries.length === 0
       ? <div className="search-no-results" role="status" data-testid="search-no-results">{t.noSearchResults}</div>
       : <div className="search-result-list">{entries.map(entry => {
-        const photo = productPhotos[entry.imageKey];
+        const photo = productPhoto(entry.imageKey);
         const blend = entry.imageKey === 'hario-photo' || entry.imageKey === 'bean-bag-photo';
         return <article className="search-result" key={entry.item.id} data-testid={`search-result-${entry.item.id}`}>
           <Link href={`/product/${entry.item.id}`} className="search-result-link" onClick={onNavigate} data-testid={`link-search-result-${entry.item.id}`}>
@@ -289,7 +251,6 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
   isFavorite: boolean; onToggleFavorite: () => void;
 }) {
   const { money } = useCurrency();
-  const localized = language === 'ar' ? arabicProductCopy[product.id] : undefined;
   return <article className="product-card" data-testid={`card-product-${product.id}`}>
     <div className="product-card-visual">
       <Link href={`/product/${product.id}`} className="product-visual-link" onClick={() => onDetails(product)} aria-label={product.name} data-testid={`link-product-image-${product.id}`}>
@@ -298,9 +259,9 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
       <FavoriteToggle id={product.id} name={product.name} saved={isFavorite} t={t} onToggle={onToggleFavorite} className="product-card-favorite"/>
     </div>
     <div className="product-info">
-      <div className="product-kicker">{product.category === 'bean' ? t.localRoast : t.equipment}</div>
+      <div className="product-kicker">{product.category === 'bean' ? `${bagSizeLabel(product.bagSize, language)} · ${language === 'ar' ? 'تحميص محلي' : 'Kuwait roasted'}` : t.equipment}</div>
       <div className="product-title-line"><Link href={`/product/${product.id}`} className="product-title-link" onClick={() => onDetails(product)} data-testid={`link-product-title-${product.id}`}><h3 className="product-title">{product.name}</h3></Link><span className="product-price" data-testid={`text-price-${product.id}`}>{money(product.price)}</span></div>
-      <p className="product-desc">{localized?.description || product.description}</p>
+      <p className="product-desc">{language === 'ar' ? product.descriptionAr || product.description : product.description}</p>
       <div className="card-actions">
         <Link className="text-action" href={`/product/${product.id}`} onClick={() => onDetails(product)} data-testid={`button-details-${product.id}`}>{t.details}</Link>
         <button className="add-button" onClick={() => onAdd(product)} data-testid={`button-add-${product.id}`}>{t.add}</button>
@@ -328,6 +289,7 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
   onAddItem: (item: CatalogItem) => void; onNavigateToDetail: () => void;
 }) {
   const { money } = useCurrency();
+  const { products, bundles } = useCatalog();
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -353,13 +315,13 @@ function Header({ t, language, setLanguage, theme, toggleTheme, cartCount, favor
       })),
       ...bundles.map(item => ({
         item,
-        imageKey: catalogImageKey(item),
+        imageKey: catalogImageKey(item, products),
         category: t.bundle,
         searchTerms: bundleTerms,
       })),
     ];
     return entries.filter(entry => normalizeSearch(`${entry.item.name} ${entry.category} ${entry.searchTerms}`).includes(query));
-  }, [searchQuery, t]);
+  }, [searchQuery, t, products, bundles]);
   useEffect(() => { setMenuOpen(false); setCategoriesOpen(false); setMobileSearchOpen(false); setSearchDropdownOpen(false); }, [location]);
   useEffect(() => {
     if (mobileSearchOpen) mobileSearchInputRef.current?.focus();
@@ -544,13 +506,14 @@ function BundleSection({ t, language, onAdd, onDetails, favoriteIds, onToggleFav
   favoriteIds: string[]; onToggleFavorite: (item: CatalogItem) => void;
 }) {
   const { money } = useCurrency();
+  const { bundles } = useCatalog();
   return <section className="bundles-section" id="bundles"><div className="container-wide">
     <div className="section-head"><div><div className="eyebrow">{t.bundlesTag}</div><h2>{t.bundlesTitle}</h2></div><p className="section-intro">{t.bundlesIntro}</p></div>
     <div className="bundle-grid">{bundles.map((bundle, index) => <article className="bundle-card" key={bundle.id} data-testid={`card-${bundle.id}`}>
       <div className="bundle-card-head"><span className="bundle-num">BL / SET 0{index + 1}</span>
         <FavoriteToggle id={bundle.id} name={bundle.name} saved={favoriteIds.includes(bundle.id)} t={t} onToggle={() => onToggleFavorite(bundle)}/>
       </div>
-      <h3>{bundle.name}</h3><p>{language === 'ar' ? ['طقس صباحي متكامل، جاهز لتبدأ يومك.', 'تحضير يومي موثوق، مع مساحة للاكتشاف.', 'أساسيات التقطير لصبّة مدروسة.'][index] : bundle.note}</p>
+      <h3>{bundle.name}</h3><p>{language === 'ar' ? bundle.noteAr || bundle.note : bundle.note}</p>
       <ul className="bundle-items" aria-label={t.bundleNote}>{bundle.items.map(item => <li key={item}>{item}</li>)}</ul>
       <div className="bundle-bottom"><div className="bundle-price"><small>{money(bundle.regular)}</small><strong>{money(bundle.price)}</strong><span>{t.save} {money(bundle.regular - bundle.price)}</span></div>
         <Link className="bundle-detail-link" href={`/product/${bundle.id}`} onClick={() => onDetails(bundle)} data-testid={`link-details-${bundle.id}`}>{t.details}</Link>
@@ -601,6 +564,7 @@ function FavoritesDrawer({ open, close, items, t, onAdd, onRemove }: {
   open: boolean; close: () => void; items: CatalogItem[]; t: typeof copy.en; onAdd: (item: CatalogItem) => void; onRemove: (id: string) => void;
 }) {
   const { money } = useCurrency();
+  const { products } = useCatalog();
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
@@ -617,8 +581,8 @@ function FavoritesDrawer({ open, close, items, t, onAdd, onRemove }: {
       {items.length === 0
         ? <div className="empty-cart"><div><Heart size={26} strokeWidth={1.2}/><h3>{t.noFavorites}</h3></div></div>
         : <div className="favorites-items">{items.map(item => {
-          const imageKey = catalogImageKey(item);
-          const photo = productPhotos[imageKey];
+          const imageKey = catalogImageKey(item, products);
+          const photo = productPhoto(imageKey);
           const blend = imageKey === 'hario-photo' || imageKey === 'bean-bag-photo';
           return <article className="favorites-row" key={item.id} data-testid={`row-favorite-${item.id}`}>
             <div className="favorite-thumb">{photo
@@ -643,12 +607,13 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
   onToggleFavorite: () => void; onAdd: (item: CatalogItem, quantity: number) => void;
 }) {
   const { money } = useCurrency();
+  const { products } = useCatalog();
   const [quantity, setQuantity] = useState(1);
   useEffect(() => setQuantity(1), [item.id]);
   const isBundle = 'items' in item;
   const category = isBundle ? t.bundle : item.category === 'machine' ? t.categoryMachines : t.categoryBeans;
-  const image = productPhotos[catalogImageKey(item)];
-  const origin = !isBundle && item.category === 'bean' ? beanOrigins[item.id]?.[language] ?? t.originUnlisted : '';
+  const image = productPhoto(catalogImageKey(item, products));
+  const origin = !isBundle && item.category === 'bean' ? (language === 'ar' ? item.originAr || item.origin : item.origin) || t.originUnlisted : '';
 
   return <main className="container-wide product-detail" data-testid={`page-product-${item.id}`}>
     <Link href={backHref} className="detail-back" data-testid="link-product-back"><ArrowLeft size={15}/>{t.back}</Link>
@@ -676,7 +641,7 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
         </section>
         {!isBundle && item.category === 'bean' && <dl className="detail-facts">
           <div><dt>{t.origin}</dt><dd>{origin}</dd></div>
-          <div><dt>{t.bagSize}</dt><dd>{language === 'ar' ? '٢٥٠ غرام' : '250g'}</dd></div>
+          <div><dt>{t.bagSize}</dt><dd>{bagSizeLabel(item.bagSize, language)}</dd></div>
           <div><dt>{t.roaster}</dt><dd>{t.roastedBy}</dd></div>
         </dl>}
         {isBundle && <section className="detail-included">
@@ -698,6 +663,7 @@ function ProductDetailPage({ item, t, language, backHref, isFavorite, onToggleFa
 }
 
 function Storefront() {
+  const { products, catalogItems, loading, error, ready, retry } = useCatalog();
   const [location] = useLocation();
   const [language, setLanguageState] = useState<Language>(() => (localStorage.getItem('brew-language') as Language) || 'en');
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => (localStorage.getItem('brew-theme') as 'light' | 'dark') || 'light');
@@ -708,7 +674,7 @@ function Storefront() {
     try {
       const stored: unknown = JSON.parse(localStorage.getItem('brew-favorites') || '[]');
       return Array.isArray(stored)
-        ? [...new Set(stored.filter((id): id is string => typeof id === 'string' && catalogIds.has(id)))]
+        ? [...new Set(stored.filter((id): id is string => typeof id === 'string'))]
         : [];
     } catch { return []; }
   });
@@ -723,13 +689,22 @@ function Storefront() {
   const storedBackPath = sessionGet(DETAIL_BACK_PATH_KEY);
   const backHref = storedBackPath?.startsWith('/') && !storedBackPath.startsWith('//') && storedBackPath !== location ? storedBackPath : '/';
   const routeKind = location.startsWith('/machines') ? 'machine' : location.startsWith('/beans') ? 'bean' : 'all';
-  const filteredProducts = useMemo(() => products.filter(product => routeKind === 'all' ? activeTab === 'all' || product.category === activeTab : product.category === routeKind), [routeKind, activeTab]);
+  const filteredProducts = useMemo(() => products.filter(product => routeKind === 'all' ? activeTab === 'all' || product.category === activeTab : product.category === routeKind), [routeKind, activeTab, products]);
   const favoriteItems = useMemo(
     () => favoriteIds.map(id => catalogItems.find(item => item.id === id)).filter((item): item is CatalogItem => Boolean(item)),
-    [favoriteIds],
+    [favoriteIds, catalogItems],
   );
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  useEffect(() => {
+    if (!ready) return;
+    setFavoriteIds(old => old.filter(id => catalogItems.some(item => item.id === id)));
+    setCart(old => old.flatMap(saved => {
+      const item = catalogItems.find(entry => entry.id === saved.id);
+      if (!item) return [];
+      return [{ ...saved, name: item.name, price: item.price, image: catalogImageKey(item, products), isBundle: 'items' in item }];
+    }));
+  }, [catalogItems, products, ready]);
   useEffect(() => {
     localStorage.setItem('brew-cart', JSON.stringify(cart));
   }, [cart]);
@@ -778,7 +753,7 @@ function Storefront() {
   const addItem = (item: CatalogItem, quantity = 1) => {
     const isBundle = 'items' in item;
     const cartItem: CartItem = isBundle
-      ? { id: item.id, name: item.name, price: item.price, image: 'machine', quantity, isBundle: true }
+      ? { id: item.id, name: item.name, price: item.price, image: catalogImageKey(item, products), quantity, isBundle: true }
       : { id: item.id, name: item.name, price: item.price, image: item.image, quantity };
     setCart(old => {
       const exists = old.find(entry => entry.id === cartItem.id);
@@ -801,7 +776,9 @@ function Storefront() {
       openCart={() => { setFavoritesOpen(false); setCartOpen(true); }}
       openFavorites={() => { setCartOpen(false); setFavoritesOpen(true); }}
       onAddItem={addItem} onNavigateToDetail={rememberDetailReturn}/>
-    {isDetailRoute ? detailItem
+    {isDetailRoute ? loading || error
+      ? <main className="container-wide section" role="status">{loading ? t.catalogLoading : <>{t.catalogError} <button className="add-button" onClick={retry}>{t.retry}</button></>}</main>
+      : detailItem
       ? <ProductDetailPage item={detailItem} t={t} language={language} backHref={backHref}
         isFavorite={favoriteIds.includes(detailItem.id)} onToggleFavorite={() => toggleFavorite(detailItem)} onAdd={addItem}/>
       : <NotFound/>
@@ -813,7 +790,7 @@ function Storefront() {
       {routeKind === 'all' && <div className="tabs" role="tablist" aria-label={t.productsTitle}>
         {(['all', 'machine', 'bean'] as const).map(tab => <button key={tab} role="tab" aria-selected={activeTab === tab} className={`tab${activeTab === tab ? ' active' : ''}`} onClick={() => setActiveTab(tab)} data-testid={`tab-${tab}`}>{tab === 'all' ? t.all : tab === 'machine' ? t.machines : t.beans}</button>)}
       </div>}
-      {filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn}
+      {loading ? <p role="status">{t.catalogLoading}</p> : error ? <p role="alert">{t.catalogError} <button className="add-button" onClick={retry}>{t.retry}</button></p> : filteredProducts.length ? <div className="product-grid">{filteredProducts.map(product => <ProductCard key={product.id} product={product} t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn}
         isFavorite={favoriteIds.includes(product.id)} onToggleFavorite={() => toggleFavorite(product)}/>)}</div> : <p>{t.noProducts}</p>}
     </main>
     {routeKind === 'all' && <><BundleSection t={t} language={language} onAdd={addItem} onDetails={rememberDetailReturn} favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}/><OriginSection t={t}/></>}
@@ -834,6 +811,9 @@ function Router() {
       <Route path="/machines" component={Storefront}/>
       <Route path="/beans" component={Storefront}/>
       <Route path="/product/:id" component={Storefront}/>
+      <Route path="/admin" component={AdminPage}/>
+      <Route path="/sign-in/*?" component={SignInPage}/>
+      <Route path="/sign-up/*?" component={SignUpPage}/>
       <Route component={NotFound}/>
     </Switch>
   </RoutedErrorBoundary>;
@@ -848,9 +828,13 @@ function App() {
   return <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CurrencyProvider>
+      <CatalogProvider>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+        <AdminAuthProvider>
         <Router/>
+        </AdminAuthProvider>
       </WouterRouter>
+      </CatalogProvider>
       </CurrencyProvider>
       <Toaster/>
     </TooltipProvider>

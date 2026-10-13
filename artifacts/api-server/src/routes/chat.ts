@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { SendChatMessageBody, SendChatMessageResponse } from "@workspace/api-zod";
 import { askGroq, BUSY_REPLY, ChatRateLimitError, VisitorChatLimiter } from "../lib/chat-service";
+import { getCatalog } from "../lib/catalog-service";
 
 const router: IRouter = Router();
 const limiter = new VisitorChatLimiter();
@@ -45,7 +46,7 @@ router.post("/chat", async (req, res): Promise<void> => {
     return;
   }
   try {
-    const reply = await askGroq(parsed.data.messages, { key, model });
+    const reply = await askGroq(parsed.data.messages, { key, model }, await getCatalog());
     res.json(SendChatMessageResponse.parse({ reply }));
   } catch (error) {
     if (error instanceof ChatRateLimitError) {

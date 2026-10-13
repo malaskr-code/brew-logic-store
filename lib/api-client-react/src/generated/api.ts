@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CatalogEntryInput,
+  CatalogResponse,
   ChatInput,
   ChatReply,
   ExchangeRates,
@@ -54,6 +56,411 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetCatalogUrl = () => {
+
+
+
+
+  return `/api/catalog`
+}
+
+/**
+ * @summary Read the live Brew Logic catalog
+ */
+export const getCatalog = async ( options?: Parameters<typeof customFetch>[1]): Promise<CatalogResponse> => {
+
+  return customFetch<CatalogResponse>(getGetCatalogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCatalogQueryKey = () => {
+    return [
+    `/api/catalog`
+    ] as const;
+    }
+
+
+export const getGetCatalogQueryOptions = <TData = Awaited<ReturnType<typeof getCatalog>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCatalogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCatalog>>> = ({ signal }) => getCatalog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCatalog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getCatalog>>>
+export type GetCatalogQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read the live Brew Logic catalog
+ */
+
+export function useGetCatalog<TData = Awaited<ReturnType<typeof getCatalog>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCatalogQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminCatalogUrl = () => {
+
+
+
+
+  return `/api/admin/catalog`
+}
+
+/**
+ * @summary Read the catalog after verifying administrator access
+ */
+export const getAdminCatalog = async ( options?: Parameters<typeof customFetch>[1]): Promise<CatalogResponse> => {
+
+  return customFetch<CatalogResponse>(getGetAdminCatalogUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminCatalogQueryKey = () => {
+    return [
+    `/api/admin/catalog`
+    ] as const;
+    }
+
+
+export const getGetAdminCatalogQueryOptions = <TData = Awaited<ReturnType<typeof getAdminCatalog>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminCatalogQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminCatalog>>> = ({ signal }) => getAdminCatalog({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminCatalog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminCatalog>>>
+export type GetAdminCatalogQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read the catalog after verifying administrator access
+ */
+
+export function useGetAdminCatalog<TData = Awaited<ReturnType<typeof getAdminCatalog>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminCatalogQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCatalogEntryUrl = () => {
+
+
+
+
+  return `/api/admin/catalog`
+}
+
+/**
+ * @summary Create a product or bundle
+ */
+export const createCatalogEntry = async (catalogEntryInput: CatalogEntryInput, options?: Parameters<typeof customFetch>[1]): Promise<CatalogEntryInput> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CatalogEntryInput>(getCreateCatalogEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(catalogEntryInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCatalogEntryMutationKey = () => ['createCatalogEntry'] as const;
+
+export const getCreateCatalogEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogEntry>>, TError,CreateCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCatalogEntry>>, TError,CreateCatalogEntryMutationVariables, TContext> => {
+
+const mutationKey = getCreateCatalogEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCatalogEntry>>, CreateCatalogEntryMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCatalogEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCatalogEntryMutationResult = NonNullable<Awaited<ReturnType<typeof createCatalogEntry>>>
+    export type CreateCatalogEntryMutationBody = BodyType<CatalogEntryInput>
+    export type CreateCatalogEntryMutationError = ErrorType<void>
+    export type CreateCatalogEntryMutationVariables = {data: BodyType<CatalogEntryInput>}
+
+    /**
+ * @summary Create a product or bundle
+ */
+export const useCreateCatalogEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogEntry>>, TError,CreateCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCatalogEntry>>,
+        TError,
+        CreateCatalogEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCatalogEntryMutationOptions(options));
+    }
+
+export const getUpdateCatalogEntryUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/catalog/${id}`
+}
+
+/**
+ * @summary Replace a product or bundle without changing its identifier
+ */
+export const updateCatalogEntry = async (id: string,
+    catalogEntryInput: CatalogEntryInput, options?: Parameters<typeof customFetch>[1]): Promise<CatalogEntryInput> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CatalogEntryInput>(getUpdateCatalogEntryUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(catalogEntryInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCatalogEntryMutationKey = () => ['updateCatalogEntry'] as const;
+
+export const getUpdateCatalogEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogEntry>>, TError,UpdateCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCatalogEntry>>, TError,UpdateCatalogEntryMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCatalogEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCatalogEntry>>, UpdateCatalogEntryMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCatalogEntry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCatalogEntryMutationResult = NonNullable<Awaited<ReturnType<typeof updateCatalogEntry>>>
+    export type UpdateCatalogEntryMutationBody = BodyType<CatalogEntryInput>
+    export type UpdateCatalogEntryMutationError = ErrorType<void>
+    export type UpdateCatalogEntryMutationVariables = {id: string;data: BodyType<CatalogEntryInput>}
+
+    /**
+ * @summary Replace a product or bundle without changing its identifier
+ */
+export const useUpdateCatalogEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogEntry>>, TError,UpdateCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCatalogEntry>>,
+        TError,
+        UpdateCatalogEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCatalogEntryMutationOptions(options));
+    }
+
+export const getDeleteCatalogEntryUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/catalog/${id}`
+}
+
+/**
+ * @summary Remove a product or bundle
+ */
+export const deleteCatalogEntry = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteCatalogEntryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCatalogEntryMutationKey = () => ['deleteCatalogEntry'] as const;
+
+export const getDeleteCatalogEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogEntry>>, TError,DeleteCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogEntry>>, TError,DeleteCatalogEntryMutationVariables, TContext> => {
+
+const mutationKey = getDeleteCatalogEntryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCatalogEntry>>, DeleteCatalogEntryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCatalogEntry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCatalogEntryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCatalogEntry>>>
+
+    export type DeleteCatalogEntryMutationError = ErrorType<void>
+    export type DeleteCatalogEntryMutationVariables = {id: string}
+
+    /**
+ * @summary Remove a product or bundle
+ */
+export const useDeleteCatalogEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogEntry>>, TError,DeleteCatalogEntryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCatalogEntry>>,
+        TError,
+        DeleteCatalogEntryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteCatalogEntryMutationOptions(options));
+    }
 
 export const getGetVisitorGeoUrl = (params?: GetVisitorGeoParams,) => {
   const normalizedParams = new URLSearchParams();

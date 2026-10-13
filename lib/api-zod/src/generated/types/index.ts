@@ -6,6 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './catalogBundle';
+export * from './catalogBundleInput';
+export * from './catalogBundleInputKind';
+export * from './catalogEntryInput';
+export * from './catalogProduct';
+export * from './catalogProductCategory';
+export * from './catalogProductInput';
+export * from './catalogProductInputKind';
+export * from './catalogResponse';
 export * from './chatInput';
 export * from './chatMessage';
 export * from './chatMessageRole';
