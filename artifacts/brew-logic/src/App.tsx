@@ -48,14 +48,14 @@ const copy = {
     productsTag: 'The working collection', productsTitle: 'Find your flow.',
     productsIntro: 'Good tools make the process clearer. Start with the part of your brew you want to understand better.',
     all: 'Everything', machines: 'Machines', beans: 'Beans', how: 'How it works', details: 'Details', add: 'Add to cart',
-    back: 'Back', origin: 'Origin', bagSize: 'Bag size', roaster: 'Roaster', roastedBy: 'Roasted in Kuwait by Speak Coffee Roaster',
+    back: 'Back', origin: 'Origin', bagSize: 'Bag size', roaster: 'Roaster', roastedBy: 'Roasted in Kuwait by Brew Logic',
     originUnlisted: 'Specific country not listed', description: 'Description', regularPrice: 'Regular price',
     bundlePrice: 'Bundle price', includedItems: 'Included items', price: 'Price', savings: 'You save',
     bundlesTag: 'Made to work together', bundlesTitle: 'A good place to begin.',
     bundlesIntro: 'Three combinations, considered from the first grind to the final pour. A little less to decide, a lot more to enjoy.',
     bundleNote: 'Included in this set', save: 'Save', addBundle: 'Add bundle to cart',
-    originTag: 'Close to home', originTitle: 'Roasted here. Brewed here.',
-    originText: 'The coffee in our shop comes from Speak Coffee Roaster, roasting right here in Kuwait. We choose coffees that invite curiosity and tools that help you get to know them, one cup at a time.',
+    originTag: 'Close to home', originTitle: 'Roasted here. Brewed here.', originBanner: 'BREW LOGIC · KUWAIT',
+    originText: 'We roast the coffee in our shop right here in Kuwait. We choose coffees that invite curiosity and tools that help you get to know them, one cup at a time.',
     originStat1: 'Coffee, roasted locally', originStat2: 'A cup at a time', originStat3: 'A considered collection',
     contactTitle: 'A question about your next cup?', contactText: 'We would love to help you find the right setup.', contactButton: 'Get in touch',
     footerText: 'Coffee equipment and beans for the curious home brewer. Kuwait, made for your counter.',
@@ -64,7 +64,7 @@ const copy = {
     cart: 'Your cart', emptyTitle: 'Nothing brewing yet.', emptyText: 'Your next good cup starts with a tool or a bag of beans.', startShopping: 'Explore the collection',
     subtotal: 'Total', checkout: 'Continue to checkout', checkoutNote: 'Checkout is a demo — no payment will be taken.',
     remove: 'Remove', added: 'Added to your cart', bundleAdded: 'Bundle added to your cart',
-    close: 'Close', quantity: 'Quantity', productDetails: 'Product details', roasted: 'Roasted in Kuwait by Speak Coffee Roaster',
+    close: 'Close', quantity: 'Quantity', productDetails: 'Product details', roasted: 'Roasted in Kuwait by Brew Logic',
     themeLight: 'Switch to light theme', themeDark: 'Switch to dark theme', language: 'العربية', menu: 'Open menu',
     search: 'Search', searchPlaceholder: 'Search machines, beans, bundles...', clearSearch: 'Clear search', noSearchResults: 'No products found',
     categoryMachineSearch: 'Machines & tools', categoryBeanSearch: 'Coffee beans', favorites: 'Favorites', noFavorites: 'No favorites yet',
@@ -74,7 +74,7 @@ const copy = {
     currencyLocationNote: 'Currency set from your location.',
     checkoutSuccess: 'Your selection is ready. Checkout is not enabled in this demo.',
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
-    categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Speak Coffee Roaster. Find a coffee worth slowing down for.',
+    categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Brew Logic. Find a coffee worth slowing down for.',
     noProducts: 'Nothing in this collection yet.',
     equipment: 'Brew equipment', localRoast: '250g · Kuwait roasted', each: 'Each', bundle: 'Bundle', brewStage: 'CALIBRATE · POUR · REPEAT', figure: 'FIG. 01 / POUR-OVER SYSTEM',
   },
@@ -89,14 +89,14 @@ const copy = {
     productsTag: 'مجموعة الأدوات', productsTitle: 'اكتشف طريقتك.',
     productsIntro: 'الأدوات الجيدة تجعل التحضير أوضح. ابدأ بالجزء الذي ترغب في فهمه أكثر.',
     all: 'الكل', machines: 'الأجهزة', beans: 'البن', how: 'كيف تعمل', details: 'التفاصيل', add: 'أضف إلى السلة',
-    back: 'رجوع', origin: 'المنشأ', bagSize: 'حجم الكيس', roaster: 'المحمصة', roastedBy: 'تحميص Speak Coffee Roaster في الكويت',
+    back: 'رجوع', origin: 'المنشأ', bagSize: 'حجم الكيس', roaster: 'المحمصة', roastedBy: 'تحميص Brew Logic في الكويت',
     originUnlisted: 'لم يُذكر بلد المنشأ', description: 'الوصف', regularPrice: 'السعر الأصلي',
     bundlePrice: 'سعر المجموعة', includedItems: 'محتويات المجموعة', price: 'السعر', savings: 'وفّرت',
     bundlesTag: 'اختيارات تكمل بعضها', bundlesTitle: 'بداية موفقة.',
     bundlesIntro: 'ثلاث مجموعات مدروسة من أول طحن إلى آخر صبّة. خيارات أقل، ومتعة أكثر.',
     bundleNote: 'تتضمن هذه المجموعة', save: 'وفّر', addBundle: 'أضف المجموعة إلى السلة',
-    originTag: 'من هنا', originTitle: 'تحميص محلي. وفنجانك أيضاً.',
-    originText: 'القهوة في متجرنا من Speak Coffee Roaster، محمصة هنا في الكويت. نختار حبوباً تثير الفضول وأدوات تساعدك على اكتشافها، فنجاناً بعد فنجان.',
+    originTag: 'من هنا', originTitle: 'تحميص محلي. وفنجانك أيضاً.', originBanner: 'Brew Logic · الكويت',
+    originText: 'نحمّص القهوة التي نقدمها في متجرنا هنا في الكويت. نختار حبوباً تثير الفضول وأدوات تساعدك على اكتشافها، فنجاناً بعد فنجان.',
     originStat1: 'قهوة محمصة محلياً', originStat2: 'فنجاناً في كل مرة', originStat3: 'مجموعة مختارة بعناية',
     contactTitle: 'لديك سؤال عن فنجانك القادم؟', contactText: 'يسعدنا مساعدتك في اختيار الأدوات المناسبة.', contactButton: 'تواصل معنا',
     footerText: 'أدوات قهوة وحبوب لعشاق التحضير في المنزل. من الكويت، لركن قهوتك.',
@@ -105,7 +105,7 @@ const copy = {
     cart: 'سلتك', emptyTitle: 'لا شيء في السلة بعد.', emptyText: 'فنجانك القادم يبدأ بأداة أو كيس من البن.', startShopping: 'اكتشف المجموعة',
     subtotal: 'الإجمالي', checkout: 'متابعة إلى إتمام الطلب', checkoutNote: 'هذه تجربة فقط — لن يتم تحصيل أي مبلغ.',
     remove: 'إزالة', added: 'أُضيف إلى سلتك', bundleAdded: 'أُضيفت المجموعة إلى سلتك',
-    close: 'إغلاق', quantity: 'الكمية', productDetails: 'تفاصيل المنتج', roasted: 'تحميص Speak Coffee Roaster في الكويت',
+    close: 'إغلاق', quantity: 'الكمية', productDetails: 'تفاصيل المنتج', roasted: 'تحميص Brew Logic في الكويت',
     themeLight: 'التبديل إلى المظهر الفاتح', themeDark: 'التبديل إلى المظهر الداكن', language: 'English', menu: 'فتح القائمة',
     search: 'بحث', searchPlaceholder: 'ابحث عن الأجهزة أو البن أو المجموعات...', clearSearch: 'مسح البحث', noSearchResults: 'لم يتم العثور على منتجات',
     categoryMachineSearch: 'أجهزة وأدوات القهوة', categoryBeanSearch: 'حبوب القهوة', favorites: 'المفضلة', noFavorites: 'لا توجد عناصر في المفضلة بعد',
@@ -115,7 +115,7 @@ const copy = {
     currencyLocationNote: 'تم تحديد العملة حسب موقعك.',
     checkoutSuccess: 'اختياراتك جاهزة. إتمام الطلب غير متاح في هذه التجربة.',
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
-    categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Speak Coffee Roaster. اكتشف قهوة تستحق التمهل.',
+    categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Brew Logic. اكتشف قهوة تستحق التمهل.',
     noProducts: 'لا توجد منتجات في هذه المجموعة حالياً.',
     equipment: 'أدوات التحضير', localRoast: '٢٥٠ غرام · تحميص محلي', each: 'للقطعة', bundle: 'مجموعة', brewStage: 'اضبط · اسكب · كرر', figure: 'الشكل ٠١ / تحضير بالتقطير',
   },
@@ -128,10 +128,10 @@ const arabicProductCopy: Record<string, { description: string; why: string }> = 
   'eureka-filtro': { description: 'مطحنة مخصصة للقهوة المقطرة بمحرك هادئ وفعّال.', why: 'تنتج الشفرات الفولاذية المسطحة حبوباً متجانسة تساعد على استخلاص واضح ومتوازن.' },
   'stagg-ekg': { description: 'صب دقيق، ودرجة حرارة بين يديك.', why: 'يحافظ متحكم PID على درجة الحرارة المحددة، وفوهة الصب المتوازنة تجعل التحكم طبيعياً.' },
   'hario-scale': { description: 'قياسان مفيدان، في أداة واحدة.', why: 'يزن القهوة والماء بينما يتابع المؤقت المدمج مدة كل صبّة.' },
-  konga: { description: '٢٥٠ غرام · تحميص Speak Coffee Roaster في الكويت', why: 'قهوة إثيوبية معبّرة، محمصة محلياً لإبراز نكهتها الحيوية ومتعددة الطبقات.' },
-  webanchi: { description: '٢٥٠ غرام · تحميص Speak Coffee Roaster في الكويت', why: 'قهوة إثيوبية محمصة بعناية، بفنجان عطري مشرق ونهاية حلوة طويلة.' },
-  'caramel-candy': { description: '٢٥٠ غرام · تحميص Speak Coffee Roaster في الكويت', why: 'خلطة يومية مريحة بحلاوة متوازنة تناسب طرق التحضير المختلفة.' },
-  'brazil-samba': { description: '٢٥٠ غرام · تحميص Speak Coffee Roaster في الكويت', why: 'قهوة برازيلية سلسة، محمصة لفنجان حلو وموثوق كل صباح.' },
+  konga: { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة إثيوبية معبّرة، محمصة محلياً لإبراز نكهتها الحيوية ومتعددة الطبقات.' },
+  webanchi: { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة إثيوبية محمصة بعناية، بفنجان عطري مشرق ونهاية حلوة طويلة.' },
+  'caramel-candy': { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'خلطة يومية مريحة بحلاوة متوازنة تناسب طرق التحضير المختلفة.' },
+  'brazil-samba': { description: '٢٥٠ غرام · تحميص Brew Logic في الكويت', why: 'قهوة برازيلية سلسة، محمصة لفنجان حلو وموثوق كل صباح.' },
 };
 
 const machineDetailCopy: Record<string, { en: string; ar: string }> = {
@@ -177,8 +177,8 @@ function detailDescription(item: CatalogItem, language: Language, t: typeof copy
   if (item.category === 'machine') return machineDetailCopy[item.id]?.[language] ?? `${item.description} ${item.why}`;
   const origin = beanOrigins[item.id]?.[language] ?? t.originUnlisted;
   return language === 'ar'
-    ? `المنشأ المسجل لهذه القهوة هو ${origin}. يحتوي الكيس على ٢٥٠ غراماً، وتحمّصه Speak Coffee Roaster في الكويت. لا تتضمن معلومات المنتج ملاحظات تذوق.`
-    : `The listed origin for this coffee is ${origin}. This 250g bag is roasted in Kuwait by Speak Coffee Roaster. The product information does not include tasting notes.`;
+    ? `المنشأ المسجل لهذه القهوة هو ${origin}. يحتوي الكيس على ٢٥٠ غراماً، وتحمّصه Brew Logic في الكويت. لا تتضمن معلومات المنتج ملاحظات تذوق.`
+    : `The listed origin for this coffee is ${origin}. This 250g bag is roasted in Kuwait by Brew Logic. The product information does not include tasting notes.`;
 }
 
 function detailHowLine(item: CatalogItem, language: Language, t: typeof copy.en) {
@@ -232,13 +232,13 @@ function Logo() {
   </Link>;
 }
 
-function ProductIllustration({ product, compact = false, children }: { product: Product | CartItem; compact?: boolean; children?: ReactNode }) {
+function ProductIllustration({ product, beanLabel, compact = false, children }: { product: Product | CartItem; beanLabel: string; compact?: boolean; children?: ReactNode }) {
   const image = product.image || 'machine';
   const photo = productPhotos[image];
   const hasPhoto = Boolean(photo);
   const blendsBackground = image === 'hario-photo' || image === 'bean-bag-photo';
   return <div className={`product-visual${compact ? ' compact' : ''}${hasPhoto ? ' has-photo' : ''}`}>
-    <span className="visual-tag">{'category' in product && product.category === 'bean' || image === 'bag' ? 'Speak · Kuwait' : 'Brew / 01'}</span>
+    <span className="visual-tag">{'category' in product && product.category === 'bean' || image === 'bag' ? beanLabel : 'Brew / 01'}</span>
     {photo ? <img className={`product-photo${blendsBackground ? ' light-background' : ''}`} src={photo} alt="" aria-hidden="true" /> : <div className={`device ${image}`} aria-hidden="true" />}
     {children}
   </div>;
@@ -293,7 +293,7 @@ function ProductCard({ product, t, language, onAdd, onDetails, isFavorite, onTog
   return <article className="product-card" data-testid={`card-product-${product.id}`}>
     <div className="product-card-visual">
       <Link href={`/product/${product.id}`} className="product-visual-link" onClick={() => onDetails(product)} aria-label={product.name} data-testid={`link-product-image-${product.id}`}>
-        <ProductIllustration product={product}/>
+        <ProductIllustration product={product} beanLabel={t.originBanner}/>
       </Link>
       <FavoriteToggle id={product.id} name={product.name} saved={isFavorite} t={t} onToggle={onToggleFavorite} className="product-card-favorite"/>
     </div>
@@ -561,7 +561,7 @@ function BundleSection({ t, language, onAdd, onDetails, favoriteIds, onToggleFav
 
 function OriginSection({ t }: { t: typeof copy.en }) {
   return <section className="container-wide origin-section">
-    <div className="origin-art"><strong>LOCAL<br/>GROUND</strong><small>Speak Coffee Roaster · Kuwait</small></div>
+    <div className="origin-art"><strong>LOCAL<br/>GROUND</strong><small>{t.originBanner}</small></div>
     <div className="origin-copy"><div className="eyebrow">{t.originTag}</div><h2>{t.originTitle}</h2><p>{t.originText}</p>
       <div className="origin-stat"><div><strong>250g</strong>{t.originStat1}</div><div><strong>01</strong>{t.originStat2}</div><div><strong>∞</strong>{t.originStat3}</div></div>
     </div>

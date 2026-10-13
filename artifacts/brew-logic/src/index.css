@@ -412,7 +412,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .device.scale:before { content:"00:00";position:absolute;top:8px;left:28px;color:#d5d9ae;font:12px monospace;letter-spacing:2px; }
 .device.scale:after { content:"";position:absolute;left:7px;right:7px;bottom:8px;height:12px;border-top:1px solid #858170; }
 .device.bag { width:95px;height:137px;background:linear-gradient(100deg,#7a8052,#9b9a66 48%,#74784a);clip-path:polygon(8% 7%,92% 7%,100% 100%,0 100%);border-radius:8px; }
-.device.bag:before { content:"SPEAK";position:absolute;top:53px;left:20px;color:#f4eddb;font:600 10px 'Space Grotesk';letter-spacing:2px; }
+.device.bag:before { content:"BREW LOGIC";position:absolute;top:53px;left:20px;color:#f4eddb;font:600 10px 'Space Grotesk';letter-spacing:2px; }
 .device.bag:after { content:"COFFEE / KUWAIT";position:absolute;top:70px;left:17px;color:#f4eddb;font:7px 'Inter';letter-spacing:1px; }
 .product-info { padding:17px 16px 15px; }
 .product-kicker { font:500 9px 'Inter';letter-spacing:.12em;text-transform:uppercase;color:var(--olive); }
