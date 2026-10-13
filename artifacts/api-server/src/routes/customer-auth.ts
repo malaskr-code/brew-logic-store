@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type RequestHandler } from "express";
 import { isIP } from "node:net";
 import { SignupCustomerBody, LoginCustomerBody, SignupCustomerResponse, LoginCustomerResponse, GetCustomerSessionResponse } from "@workspace/api-zod";
-import { signupCustomer, loginCustomer, getCustomerSession, CUSTOMER_COOKIE, SESSION_DURATION, customerCookieOptions, EmailInUseError, InvalidCredentialsError, AuthAttemptLimiter } from "../lib/customer-auth";
+import { signupCustomer, loginCustomer, getCustomerSession, CUSTOMER_COOKIE, SESSION_DURATION, customerCookieOptions, EmailInUseError, InvalidCredentialsError, AuthAttemptLimiter, CustomerAuthConfigurationError } from "../lib/customer-auth";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 
 const router = Router();
@@ -26,7 +26,8 @@ function ipKey(req: Request) {
 function errorResponse(req: Request, res: Response, error: unknown) {
   if (error instanceof EmailInUseError) { res.status(409).json({ error: "This email is already in use.", code: "email_in_use" }); return; }
   if (error instanceof InvalidCredentialsError) { res.status(401).json({ error: "Email or password is incorrect", code: "invalid_credentials" }); return; }
-  req.log.warn("Customer account operation unavailable");
+  if (error instanceof CustomerAuthConfigurationError) req.log.warn({ reason: error.reason }, "JWT signing configuration unavailable");
+  else req.log.warn("Customer account operation unavailable");
   res.status(503).json({ error: "Accounts are temporarily unavailable. Please try again.", code: "unavailable" });
 }
 

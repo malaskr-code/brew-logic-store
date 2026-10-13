@@ -14,10 +14,14 @@ const dummyHash = bcrypt.hash(randomBytes(32).toString("hex"), 12);
 
 export class EmailInUseError extends Error {}
 export class InvalidCredentialsError extends Error {}
+export class CustomerAuthConfigurationError extends Error {
+  constructor(readonly reason: "missing" | "too_short") { super("Customer session signing is not configured"); }
+}
 
 function signingKey() {
   const secret = process.env.JWT_SECRET;
-  if (!secret || Buffer.byteLength(secret) < 32) throw new Error("Customer session signing is not configured");
+  if (!secret) throw new CustomerAuthConfigurationError("missing");
+  if (Buffer.byteLength(secret) < 32) throw new CustomerAuthConfigurationError("too_short");
   return secret;
 }
 
