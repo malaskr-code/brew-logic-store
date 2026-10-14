@@ -53,7 +53,7 @@ const copy = {
     announcement: 'Free delivery on orders over {price} · Kuwait',
     navMachines: 'Machines', navBeans: 'Beans', navBundles: 'Bundles', navContact: 'Contact', categories: 'Categories',
     heroTag: 'Good coffee is a set of decisions',
-    heroLead: 'Engineer', heroEm: 'your cup.',
+    heroLead: 'Precision', heroEm: 'you can taste.',
     heroText: 'A thoughtful edit of coffee tools and locally roasted beans for people who like knowing how their coffee gets made.',
     shopNow: 'Shop Now', detailNote: 'Tools for better mornings, chosen with care',
     ticker1: 'Measure what matters', ticker2: 'Locally roasted in Kuwait', ticker3: 'Brew with intention', ticker4: 'A better cup, by design',
@@ -95,7 +95,7 @@ const copy = {
     announcement: 'توصيل مجاني للطلبات فوق {price} · الكويت',
     navMachines: 'الأجهزة', navBeans: 'البن', navBundles: 'المجموعات', navContact: 'تواصل معنا', categories: 'التصنيفات',
     heroTag: 'القهوة الجيدة تبدأ بقرارات مدروسة',
-    heroLead: 'أتقن', heroEm: 'قهوتك.',
+    heroLead: 'دقة', heroEm: 'تتذوقها.',
     heroText: 'اختيارات مدروسة من أدوات القهوة وحبوب محمصة محلياً، لكل من يهتم بكيفية تحضير فنجانه.',
     shopNow: 'تسوّق الآن', detailNote: 'أدوات لصباح أفضل، اخترناها بعناية',
     ticker1: 'قِس ما يهم', ticker2: 'تحميص محلي في الكويت', ticker3: 'حضّر باهتمام', ticker4: 'فنجان أفضل، بتصميم مدروس',
@@ -469,7 +469,7 @@ function Footer({ t }: { t: typeof copy.en }) {
     <footer className="footer">
       <div className="container-wide">
         <div className="footer-top">
-          <div><Logo/><p className="footer-note">{t.footerText}</p></div>
+          <div><Logo/><p className="footer-note"><bdi>Engineer your cup</bdi></p><p className="footer-note">{t.footerText}</p></div>
           <div className="footer-links">
             <div className="footer-col"><strong>{t.shop}</strong><Link href="/machines" data-testid="footer-link-machines">{t.navMachines}</Link><Link href="/beans" data-testid="footer-link-beans">{t.navBeans}</Link><Link href="/#bundles" data-testid="footer-link-bundles">{t.navBundles}</Link></div>
             <div className="footer-col"><strong>{t.sayHello}</strong><a href="mailto:hello@brewlogic.com" data-testid="footer-link-email">{t.email}</a><a href="https://wa.me/96598858879" target="_blank" rel="noreferrer" data-testid="footer-link-whatsapp">WhatsApp</a></div>
