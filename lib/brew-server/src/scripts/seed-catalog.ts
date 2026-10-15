@@ -1,7 +1,7 @@
-import { getCatalogCollections } from "../lib/catalog-service";
-import { seedProducts, seedBundles } from "../lib/catalog-seed";
-import { closeMongoDatabase } from "../lib/mongo";
-import { logger } from "../lib/logger";
+import { getCatalogCollections } from "../catalog-service";
+import { seedProducts, seedBundles } from "../catalog-seed";
+import { closeMongoDatabase } from "../mongo";
+import { logger } from "../logger";
 
 async function seed() {
   const collections = await getCatalogCollections();

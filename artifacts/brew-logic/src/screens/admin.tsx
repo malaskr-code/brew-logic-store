@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from 'wouter';
+import { Link } from '@/lib/navigation';
 import { useAuth, useClerk } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Check, Coffee, Lock, LogOut, Package, Pencil, Plus, RefreshCw, ShieldX, Trash2, X } from 'lucide-react';
@@ -17,11 +17,11 @@ import harioPhoto from '@assets/image_1791649703321.png';
 import beanBagPhoto from '@assets/image_1791649759965.png';
 import './admin.css';
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const basePath = '';
 
 const imagePhotos: Record<string, string> = {
-  'xbloom-photo': xbloomPhoto, 'aiden-photo': aidenPhoto, 'moccamaster-photo': moccamasterPhoto,
-  'eureka-photo': eurekaPhoto, 'stagg-photo': staggPhoto, 'hario-photo': harioPhoto, 'bean-bag-photo': beanBagPhoto,
+  'xbloom-photo': xbloomPhoto.src, 'aiden-photo': aidenPhoto.src, 'moccamaster-photo': moccamasterPhoto.src,
+  'eureka-photo': eurekaPhoto.src, 'stagg-photo': staggPhoto.src, 'hario-photo': harioPhoto.src, 'bean-bag-photo': beanBagPhoto.src,
 };
 const imageKeys = Object.keys(imagePhotos);
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

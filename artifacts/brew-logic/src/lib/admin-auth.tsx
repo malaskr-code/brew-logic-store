@@ -3,17 +3,17 @@ import { ClerkProvider, SignIn, SignUp, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetAdminCatalogQueryKey } from '@workspace/api-client-react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from '@/lib/navigation';
 import './admin-auth.css';
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
 );
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const clerkProxyUrl = process.env.NEXT_PUBLIC_CLERK_PROXY_URL || undefined;
+const basePath = '';
 function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
+  return path;
 }
 
 function AdminCacheInvalidator() {

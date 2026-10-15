@@ -1,27 +1,25 @@
 kind = "web"
 previewPath = "/"
 title = "Brew Logic"
-description = "A responsive Kuwait coffee storefront with live MongoDB products and bundles, bcrypt/JWT customer accounts, a separate Clerk-protected owner catalog editor, persistent cart and favorites, an AI shop assistant, currency conversion, and Arabic/English plus light/dark modes. Checkout remains a demo; no payment processing."
+description = "A full-stack Next.js Kuwait coffee store: frontend and API in one app, live MongoDB catalog, bcrypt/JWT customer accounts, separate Clerk-protected owner editing, cart, favorites, AI assistant, currency conversion, Arabic/English and light/dark modes. Checkout is a demo."
 version = "1.0.0"
 id = "artifacts/brew-logic"
 router = "path"
 
 [[services]]
 name = "web"
-paths = [ "/" ]
+paths = ["/", "/api"]
 localPort = 19233
 
 [services.development]
 run = "pnpm --filter @workspace/brew-logic run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/brew-logic", "run", "build" ]
-serve = "static"
-publicDir = "artifacts/brew-logic/dist/public"
+build = ["pnpm", "--filter", "@workspace/brew-logic", "run", "build"]
+run = ["pnpm", "--filter", "@workspace/brew-logic", "run", "start"]
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+[services.production.health.startup]
+path = "/api/healthz"
 
 [services.env]
 PORT = "19233"

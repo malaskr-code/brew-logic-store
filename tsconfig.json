@@ -4,6 +4,9 @@
   "files": [],
   "references": [
     {
+      "path": "./lib/brew-server"
+    },
+    {
       "path": "./lib/brew-catalog"
     },
     {

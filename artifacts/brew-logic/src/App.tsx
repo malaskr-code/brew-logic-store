@@ -3,8 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import NotFound from '@/pages/not-found';
-import { Route, Switch, Link, useLocation, Router as WouterRouter } from 'wouter';
+import NotFound from '@/screens/not-found';
+import { Link, useLocation } from '@/lib/navigation';
 import { ArrowDown, ArrowLeft, ArrowRight, Check, ChevronDown, Heart, Menu, Moon, Plus, Search, ShoppingBag, Sun, X } from 'lucide-react';
 import xbloomPhoto from '@assets/image_1791649384537.png';
 import aidenPhoto from '@assets/image_1791649481086.png';
@@ -19,7 +19,7 @@ import { ChatWidget } from '@/components/chat-widget';
 import { CatalogProvider, useCatalog } from '@/lib/catalog';
 import { AdminAuthProvider, SignInPage, SignUpPage } from '@/lib/admin-auth';
 import { CustomerAuthProvider, CustomerLoginPage, CustomerSignupPage, CustomerAccountButton } from '@/lib/customer-auth';
-import AdminPage from '@/pages/admin';
+import AdminPage from '@/screens/admin';
 
 type Language = 'en' | 'ar';
 type CartItem = { id: string; name: string; price: number; image: string; quantity: number; isBundle?: boolean };
@@ -29,13 +29,13 @@ const queryClient = new QueryClient();
 type SearchEntry = { item: CatalogItem; imageKey: string; category: string; searchTerms: string };
 
 const productPhotos: Record<string, string> = {
-  'xbloom-photo': xbloomPhoto,
-  'aiden-photo': aidenPhoto,
-  'moccamaster-photo': moccamasterPhoto,
-  'eureka-photo': eurekaPhoto,
-  'stagg-photo': staggPhoto,
-  'hario-photo': harioPhoto,
-  'bean-bag-photo': beanBagPhoto,
+  'xbloom-photo': xbloomPhoto.src,
+  'aiden-photo': aidenPhoto.src,
+  'moccamaster-photo': moccamasterPhoto.src,
+  'eureka-photo': eurekaPhoto.src,
+  'stagg-photo': staggPhoto.src,
+  'hario-photo': harioPhoto.src,
+  'bean-bag-photo': beanBagPhoto.src,
 };
 
 function productPhoto(image: string) {
@@ -807,20 +807,15 @@ function Storefront() {
 }
 
 function Router() {
-  return <RoutedErrorBoundary>
-    <Switch>
-      <Route path="/" component={Storefront}/>
-      <Route path="/machines" component={Storefront}/>
-      <Route path="/beans" component={Storefront}/>
-      <Route path="/product/:id" component={Storefront}/>
-      <Route path="/admin" component={AdminPage}/>
-      <Route path="/login" component={CustomerLoginPage}/>
-      <Route path="/signup" component={CustomerSignupPage}/>
-      <Route path="/sign-in/*?" component={SignInPage}/>
-      <Route path="/sign-up/*?" component={SignUpPage}/>
-      <Route component={NotFound}/>
-    </Switch>
-  </RoutedErrorBoundary>;
+  const [path] = useLocation();
+  let page: ReactNode = <NotFound/>;
+  if (['/', '/machines', '/beans'].includes(path) || /^\/product\/[^/]+\/?$/.test(path)) page = <Storefront/>;
+  else if (path === '/admin') page = <AdminPage/>;
+  else if (path === '/login') page = <CustomerLoginPage/>;
+  else if (path === '/signup') page = <CustomerSignupPage/>;
+  else if (path === '/sign-in' || path.startsWith('/sign-in/')) page = <SignInPage/>;
+  else if (path === '/sign-up' || path.startsWith('/sign-up/')) page = <SignUpPage/>;
+  return <RoutedErrorBoundary>{page}</RoutedErrorBoundary>;
 }
 
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {
@@ -834,11 +829,9 @@ function App() {
     <TooltipProvider>
       <CurrencyProvider>
       <CatalogProvider>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <AdminAuthProvider>
         <Router/>
         </AdminAuthProvider>
-      </WouterRouter>
       </CatalogProvider>
       </CurrencyProvider>
       <Toaster/>

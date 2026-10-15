@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'wouter';
+import { Link } from '@/lib/navigation';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { sendChatMessage, type ChatMessage } from '@workspace/api-client-react';
 import type { CatalogItem } from '@workspace/brew-catalog';

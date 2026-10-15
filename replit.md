@@ -1,45 +1,43 @@
-# [Project name]
+# Brew Logic
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Kuwait coffee store with a live MongoDB catalog, customer accounts, a private
+owner editor, cart, favorites, currency conversion, and a coffee assistant.
 
-## Run & Operate
+## Run and build
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/brew-logic run dev` — one Next.js server for the
+  storefront and all `/api/*` routes; use its managed workflow in Replit.
+- `pnpm --filter @workspace/brew-logic run build` — production Next.js build.
+- `pnpm --filter @workspace/brew-logic run start` — production server.
+- `pnpm run typecheck` — all workspace TypeScript checks.
+- `pnpm --filter @workspace/brew-server run test` — server unit tests; live
+  MongoDB integration checks require `RUN_MONGO_INTEGRATION_TESTS=1`.
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate shared API types.
+- `pnpm --filter @workspace/brew-server run seed:catalog` — explicit one-time
+  seed; skips nonempty product/bundle collections. Never seed during deployment.
 
-## Stack
+## Structure
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- `artifacts/brew-logic` — the single Next.js frontend and backend.
+- `artifacts/brew-logic/src/server` — native Next.js HTTP/auth/proxy handlers.
+- `lib/brew-server` — server-only MongoDB, customer auth, catalog, chat, and
+  currency services, plus seed data and tests.
+- `lib/api-spec/openapi.yaml` — API contracts; generated client and Zod libraries
+  retain the existing same-origin endpoint shapes.
+- `artifacts/api-server` — retired artifact metadata only; no running backend.
+- `artifacts/mockup-sandbox` — separate design preview, not deployed with the store.
+- `docs/vercel-deployment.md` — exact single-project Vercel import settings.
 
-## Where things live
+## Constraints
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- The user requested Next.js for the whole store, with frontend and backend
+  hosted together. Do not reintroduce a separate Vite/Express store runtime.
+- Do not change anything outside the requested feature.
+- Preserve MongoDB; never replace it with another database without permission.
+- Customer accounts use MongoDB, bcrypt, and a secure httpOnly JWT cookie.
+  Customer email verification is disabled.
+- Owner access uses a separate verified Clerk identity. A matching customer
+  email must never grant administrator access.
+- Never expose server secrets to browser code. Only publishable Clerk
+  configuration may use `NEXT_PUBLIC_*`.
+- Checkout remains a demo; no payment processing is implemented.

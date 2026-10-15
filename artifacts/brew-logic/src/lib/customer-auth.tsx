@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from '@/lib/navigation';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LogOut, Moon, Sun, User } from 'lucide-react';
 import {
   getGetCustomerSessionQueryKey,
