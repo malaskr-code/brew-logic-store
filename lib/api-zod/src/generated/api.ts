@@ -9,23 +9,42 @@ import * as zod from 'zod';
 
 
 /**
- * @summary Create a test-only Stripe hosted checkout, priced from the live catalog
+ * @summary Lock a server-priced USD test payment quote for 15 minutes
  */
-export const createCheckoutBodyItemsItemIdMax = 100;
+export const createCheckoutQuoteBodyItemsItemIdMax = 100;
 
-export const createCheckoutBodyItemsItemQuantityMax = 99;
+export const createCheckoutQuoteBodyItemsItemQuantityMax = 99;
 
-export const createCheckoutBodyItemsMax = 50;
+export const createCheckoutQuoteBodyItemsMax = 50;
 
+
+
+export const CreateCheckoutQuoteBody = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().min(1).max(createCheckoutQuoteBodyItemsItemIdMax),
+  "quantity": zod.number().int().min(1).max(createCheckoutQuoteBodyItemsItemQuantityMax)
+})).min(1).max(createCheckoutQuoteBodyItemsMax),
+  "requestId": zod.string().uuid(),
+  "language": zod.enum(['en', 'ar'])
+})
+
+export const CreateCheckoutQuoteResponse = zod.object({
+  "quoteId": zod.string(),
+  "amountKwd": zod.number(),
+  "amountUsd": zod.number(),
+  "rate": zod.number(),
+  "expiresAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Confirm an owned USD quote and create a test-only Stripe hosted checkout
+ */
+export const createCheckoutBodyQuoteIdRegExp = new RegExp('^order_[a-f0-9]{40}$');
 
 
 export const CreateCheckoutBody = zod.object({
-  "items": zod.array(zod.object({
-  "id": zod.string().min(1).max(createCheckoutBodyItemsItemIdMax),
-  "quantity": zod.number().int().min(1).max(createCheckoutBodyItemsItemQuantityMax)
-})).min(1).max(createCheckoutBodyItemsMax),
-  "requestId": zod.string().uuid(),
-  "language": zod.enum(['en', 'ar'])
+  "quoteId": zod.string().regex(createCheckoutBodyQuoteIdRegExp)
 })
 
 export const CreateCheckoutResponse = zod.object({
@@ -57,6 +76,7 @@ export const GetCheckoutSessionResponse = zod.object({
   "sessionId": zod.string(),
   "status": zod.enum(['paid', 'pending', 'expired']),
   "amountKwd": zod.number(),
+  "amountUsd": zod.number(),
   "items": zod.array(zod.object({
   "id": zod.string().min(1).max(getCheckoutSessionResponseItemsItemIdMax),
   "quantity": zod.number().int().min(1).max(getCheckoutSessionResponseItemsItemQuantityMax)

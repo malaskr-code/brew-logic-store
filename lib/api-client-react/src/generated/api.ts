@@ -26,8 +26,10 @@ import type {
   CatalogResponse,
   ChatInput,
   ChatReply,
+  CheckoutConfirmation,
   CheckoutInput,
   CheckoutLink,
+  CheckoutQuote,
   CheckoutStatus,
   CustomerAuthError,
   CustomerLoginInput,
@@ -67,6 +69,94 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
+export const getCreateCheckoutQuoteUrl = () => {
+
+
+
+
+  return `/api/checkout/quote`
+}
+
+/**
+ * @summary Lock a server-priced USD test payment quote for 15 minutes
+ */
+export const createCheckoutQuote = async (checkoutInput: CheckoutInput, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutQuote> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CheckoutQuote>(getCreateCheckoutQuoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(checkoutInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCheckoutQuoteMutationKey = () => ['createCheckoutQuote'] as const;
+
+export const getCreateCheckoutQuoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckoutQuote>>, TError,CreateCheckoutQuoteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCheckoutQuote>>, TError,CreateCheckoutQuoteMutationVariables, TContext> => {
+
+const mutationKey = getCreateCheckoutQuoteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCheckoutQuote>>, CreateCheckoutQuoteMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCheckoutQuote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCheckoutQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof createCheckoutQuote>>>
+    export type CreateCheckoutQuoteMutationBody = BodyType<CheckoutInput>
+    export type CreateCheckoutQuoteMutationError = ErrorType<void>
+    export type CreateCheckoutQuoteMutationVariables = {data: BodyType<CheckoutInput>}
+
+    /**
+ * @summary Lock a server-priced USD test payment quote for 15 minutes
+ */
+export const useCreateCheckoutQuote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckoutQuote>>, TError,CreateCheckoutQuoteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCheckoutQuote>>,
+        TError,
+        CreateCheckoutQuoteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCheckoutQuoteMutationOptions(options));
+    }
+
 export const getCreateCheckoutUrl = () => {
 
 
@@ -76,9 +166,9 @@ export const getCreateCheckoutUrl = () => {
 }
 
 /**
- * @summary Create a test-only Stripe hosted checkout, priced from the live catalog
+ * @summary Confirm an owned USD quote and create a test-only Stripe hosted checkout
  */
-export const createCheckout = async (checkoutInput: CheckoutInput, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutLink> => {
+export const createCheckout = async (checkoutConfirmation: CheckoutConfirmation, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutLink> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -99,7 +189,7 @@ return customFetch<CheckoutLink>(getCreateCheckoutUrl(),
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(checkoutInput)
+    body: JSON.stringify(checkoutConfirmation)
   }
 );}
 
@@ -137,12 +227,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof createCheckout>>>
-    export type CreateCheckoutMutationBody = BodyType<CheckoutInput>
+    export type CreateCheckoutMutationBody = BodyType<CheckoutConfirmation>
     export type CreateCheckoutMutationError = ErrorType<void>
-    export type CreateCheckoutMutationVariables = {data: BodyType<CheckoutInput>}
+    export type CreateCheckoutMutationVariables = {data: BodyType<CheckoutConfirmation>}
 
     /**
- * @summary Create a test-only Stripe hosted checkout, priced from the live catalog
+ * @summary Confirm an owned USD quote and create a test-only Stripe hosted checkout
  */
 export const useCreateCheckout = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCheckout>>, TError,CreateCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}

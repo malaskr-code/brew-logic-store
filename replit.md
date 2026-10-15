@@ -40,4 +40,11 @@ owner editor, cart, favorites, currency conversion, and a coffee assistant.
   email must never grant administrator access.
 - Never expose server secrets to browser code. Only publishable Clerk
   configuration may use `NEXT_PUBLIC_*`.
-- Checkout remains a demo; no payment processing is implemented.
+- Checkout uses Stripe-hosted test payments only; live keys are rejected.
+  Catalog prices remain KWD. The user approved USD test payments: show and
+  confirm a server-priced USD quote before redirecting to Stripe.
+- MongoDB retains catalog, customers, and checkout order snapshots. The existing
+  PostgreSQL database is used only for Stripe's managed event synchronization.
+- `pnpm --filter @workspace/scripts run setup:stripe` initializes Stripe's
+  managed schema, test webhook and backfill. Production requires a server-only
+  `STRIPE_WEBHOOK_URL` and payment database connection; see the Vercel guide.

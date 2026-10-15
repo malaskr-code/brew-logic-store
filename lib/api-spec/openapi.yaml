@@ -11,15 +11,33 @@ tags:
   - name: health
     description: Health operations
 paths:
-  /checkout:
+  /checkout/quote:
     post:
-      operationId: createCheckout
-      summary: Create a test-only Stripe hosted checkout, priced from the live catalog
+      operationId: createCheckoutQuote
+      summary: Lock a server-priced USD test payment quote for 15 minutes
       requestBody:
         required: true
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CheckoutInput" }
+      responses:
+        "201":
+          description: USD quote, requiring customer confirmation before Stripe checkout
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutQuote" }
+        "400": { description: Invalid cart }
+        "409": { description: Quote expired or changed }
+        "503": { description: Rates or checkout unavailable }
+  /checkout:
+    post:
+      operationId: createCheckout
+      summary: Confirm an owned USD quote and create a test-only Stripe hosted checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CheckoutConfirmation" }
       responses:
         "201":
           description: Test checkout created
@@ -383,13 +401,29 @@ components:
       properties:
         sessionId: { type: string }
         url: { type: string, format: uri }
+    CheckoutConfirmation:
+      type: object
+      additionalProperties: false
+      required: [quoteId]
+      properties:
+        quoteId: { type: string, pattern: "^order_[a-f0-9]{40}$" }
+    CheckoutQuote:
+      type: object
+      required: [quoteId, amountKwd, amountUsd, rate, expiresAt]
+      properties:
+        quoteId: { type: string }
+        amountKwd: { type: number }
+        amountUsd: { type: number }
+        rate: { type: number }
+        expiresAt: { type: string, format: date-time }
     CheckoutStatus:
       type: object
-      required: [sessionId, status, amountKwd, items]
+      required: [sessionId, status, amountKwd, amountUsd, items]
       properties:
         sessionId: { type: string }
         status: { type: string, enum: [paid, pending, expired] }
         amountKwd: { type: number }
+        amountUsd: { type: number }
         items:
           type: array
           items: { $ref: "#/components/schemas/CheckoutLineInput" }

@@ -75,7 +75,7 @@ const copy = {
     shop: 'Shop', sayHello: 'Say hello', follow: 'Follow along', email: 'hello@brewlogic.com',
     rights: '© 2025 Brew Logic · Kuwait', crafted: 'Engineer your cup',
     cart: 'Your cart', emptyTitle: 'Nothing brewing yet.', emptyText: 'Your next good cup starts with a tool or a bag of beans.', startShopping: 'Explore the collection',
-    subtotal: 'Total', checkout: 'Continue to checkout', checkoutNote: 'Stripe test checkout — no real money will be charged.',
+    subtotal: 'Total', checkout: 'Continue to checkout', checkoutNote: 'Stripe test checkout is charged in USD. No real money will be charged.',
     remove: 'Remove', added: 'Added to your cart', bundleAdded: 'Bundle added to your cart',
     close: 'Close', quantity: 'Quantity', productDetails: 'Product details', roasted: 'Roasted in Kuwait by Brew Logic',
     themeLight: 'Switch to light theme', themeDark: 'Switch to dark theme', language: 'العربية', menu: 'Open menu',
@@ -83,9 +83,8 @@ const copy = {
     categoryMachineSearch: 'Machines & tools', categoryBeanSearch: 'Coffee beans', favorites: 'Favorites', noFavorites: 'No favorites yet',
     favoriteAdd: 'Add to favorites', favoriteRemove: 'Remove from favorites',
     currency: 'Currency', currencyLoading: 'Loading exchange rates', currencyError: 'Exchange rates unavailable. Prices are in KWD.',
-    currencyNote: 'Approximate. Orders are charged in KWD.',
+    currencyNote: 'Approximate display prices. Stripe test checkout is charged in USD.',
     currencyLocationNote: 'Currency set from your location.',
-    checkoutSuccess: 'Your selection is ready. Checkout is not enabled in this demo.',
     categoryMachines: 'Coffee machines & tools', categoryBeans: 'Locally roasted coffee',
     categoryMachineCopy: 'Thoughtful equipment that lets you get closer to the cup you want.', categoryBeansCopy: 'Freshly roasted in Kuwait by Brew Logic. Find a coffee worth slowing down for.',
     noProducts: 'Nothing in this collection yet.',
@@ -117,7 +116,7 @@ const copy = {
     shop: 'تسوّق', sayHello: 'تواصل معنا', follow: 'تابعنا', email: 'hello@brewlogic.com',
     rights: '© ٢٠٢٥ Brew Logic · الكويت', crafted: 'أتقن قهوتك',
     cart: 'سلتك', emptyTitle: 'لا شيء في السلة بعد.', emptyText: 'فنجانك القادم يبدأ بأداة أو كيس من البن.', startShopping: 'اكتشف المجموعة',
-    subtotal: 'الإجمالي', checkout: 'متابعة إلى إتمام الطلب', checkoutNote: 'دفع تجريبي عبر Stripe — لن يتم تحصيل أي مبلغ حقيقي.',
+    subtotal: 'الإجمالي', checkout: 'متابعة إلى إتمام الطلب', checkoutNote: 'الدفع التجريبي عبر Stripe بالدولار الأمريكي. لن يتم تحصيل أي مبلغ حقيقي.',
     remove: 'إزالة', added: 'أُضيف إلى سلتك', bundleAdded: 'أُضيفت المجموعة إلى سلتك',
     close: 'إغلاق', quantity: 'الكمية', productDetails: 'تفاصيل المنتج', roasted: 'تحميص Brew Logic في الكويت',
     themeLight: 'التبديل إلى المظهر الفاتح', themeDark: 'التبديل إلى المظهر الداكن', language: 'English', menu: 'فتح القائمة',
@@ -125,9 +124,8 @@ const copy = {
     categoryMachineSearch: 'أجهزة وأدوات القهوة', categoryBeanSearch: 'حبوب القهوة', favorites: 'المفضلة', noFavorites: 'لا توجد عناصر في المفضلة بعد',
     favoriteAdd: 'أضف إلى المفضلة', favoriteRemove: 'إزالة من المفضلة',
     currency: 'العملة', currencyLoading: 'جارٍ تحميل أسعار الصرف', currencyError: 'أسعار الصرف غير متاحة. الأسعار بالدينار الكويتي.',
-    currencyNote: 'أسعار تقريبية. تُحصّل قيمة الطلبات بالدينار الكويتي.',
+    currencyNote: 'أسعار العرض تقريبية. الدفع التجريبي عبر Stripe بالدولار الأمريكي.',
     currencyLocationNote: 'تم تحديد العملة حسب موقعك.',
-    checkoutSuccess: 'اختياراتك جاهزة. إتمام الطلب غير متاح في هذه التجربة.',
     categoryMachines: 'أجهزة وأدوات القهوة', categoryBeans: 'قهوة محمصة محلياً',
     categoryMachineCopy: 'أدوات مدروسة تقرّبك من الفنجان الذي تريده.', categoryBeansCopy: 'محمصة في الكويت بواسطة Brew Logic. اكتشف قهوة تستحق التمهل.',
     noProducts: 'لا توجد منتجات في هذه المجموعة حالياً.',
@@ -561,7 +559,12 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, checkout }: {
             <button onClick={() => onQuantity(item.id, -1)} aria-label={`Decrease ${item.name} quantity`} data-testid={`button-decrease-${item.id}`}>−</button><span data-testid={`text-quantity-${item.id}`}>{item.quantity}</span><button onClick={() => onQuantity(item.id, 1)} aria-label={`Increase ${item.name} quantity`} data-testid={`button-increase-${item.id}`}>+</button>
           </div></div><button className="remove-button" onClick={() => onRemove(item.id)} data-testid={`button-remove-${item.id}`}>{t.remove}</button>
         </article>)}</div>
-        <div className="cart-summary"><div className="total-line"><span>{t.subtotal}</span><span data-testid="text-cart-total">{money(total)}</span></div><button className="primary-button checkout" onClick={() => void checkout.start()} disabled={checkout.busy} aria-busy={checkout.busy} data-testid="button-checkout">{checkout.buttonText || t.checkout}<ArrowRight size={15}/></button><p className="checkout-note">{t.checkoutNote}</p></div>
+        <div className="cart-summary"><div className="total-line"><span>{t.subtotal}</span><span data-testid="text-cart-total">{money(total)}</span></div>
+          {checkout.quote && <div data-testid="checkout-usd-quote">
+            <div className="total-line"><span>{checkout.quoteLabel}</span><strong>{checkout.quote.amountUsd.toFixed(2)} USD</strong></div>
+            <p className="checkout-note">{checkout.rateLabel}</p>
+          </div>}
+          <button className="primary-button checkout" onClick={() => void checkout.start()} disabled={checkout.busy} aria-busy={checkout.busy} data-testid="button-checkout">{checkout.buttonText || t.checkout}<ArrowRight size={15}/></button><p className="checkout-note">{t.checkoutNote}</p></div>
       </>}
     </aside>
   </>;

@@ -100,4 +100,49 @@ On the actual HTTPS deployment, verify:
 7. Arabic/RTL, dark mode, and mobile layout.
 
 As before, in-memory rate limits and server rate caches are per running instance.
-Checkout remains a demonstration; no payment processing was introduced.
+## Stripe test checkout
+
+The cart now reviews an exact **USD test payment quote** before opening Stripe
+Checkout. Catalog/display prices remain KWD, subject to the existing display
+currency switcher. Quotes use the server's cached KWD exchange rates, round each
+Stripe unit price to USD cents, and expire after 15 minutes.
+
+Only `sk_test_` credentials and test sessions are accepted. Replacing the key
+with a live key intentionally disables checkout rather than charging real money.
+The publishable key is not needed for this hosted-redirect integration.
+
+Set these **server-only** Vercel environment variables:
+
+- `STRIPE_SECRET_KEY` — the matching test secret key.
+- `DATABASE_URL` — the PostgreSQL connection for Stripe's managed event schema.
+  This is separate from `MONGODB_URI`; MongoDB is not replaced or migrated.
+- `STRIPE_WEBHOOK_URL` — the exact public HTTPS endpoint,
+  `https://YOUR-VERCEL-DOMAIN/api/stripe/webhook`.
+
+Do not copy a Replit preview webhook URL to Vercel. Ensure Stripe can reach the
+Vercel webhook without deployment-protection authentication. The managed
+integration registers the endpoint and stores its signing secret securely in
+the Stripe payment database; `STRIPE_WEBHOOK_SECRET` is only needed if using an
+explicitly configured signing secret instead.
+
+The setup helper is:
+
+```sh
+pnpm --filter @workspace/scripts run setup:stripe
+```
+
+Run it with the intended deployment's test credentials, payment database and
+webhook URL configured securely. It initializes **Stripe's managed schema
+only**, not MongoDB users/products/bundles. Checkout initialization also ensures
+the managed webhook/backfill is ready before creating a Stripe session.
+
+Raw webhook signatures are verified by `stripe-replit-sync`; the handler never
+trusts a browser-supplied event or `checkout=success` URL. The return flow checks
+the checkout cookie owner, Stripe session, USD amount and order reference before
+marking the MongoDB order paid and removing purchased items from the cart.
+Cancelled, expired, failed and unverified payments leave the cart intact.
+
+This is a **test checkout**, not a live-payment launch or fulfillment system.
+The Stripe payment ledger is synchronized by webhook; the MongoDB confirmation
+is finalized on the verified return. Automated fulfillment and owner order
+management require separate work before accepting real orders.

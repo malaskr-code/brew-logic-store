@@ -20,11 +20,11 @@ async function handle(request: NextRequest) {
       ? ['GET', 'HEAD']
       : path === 'admin/catalog' ? ['GET', 'HEAD', 'POST']
       : /^admin\/catalog\/[^/]+$/.test(path) ? ['PUT', 'DELETE']
-      : ['chat', 'auth/signup', 'auth/login', 'auth/logout', 'checkout', 'stripe/webhook'].includes(path) ? ['POST'] : null;
+      : ['chat', 'auth/signup', 'auth/login', 'auth/logout', 'checkout', 'checkout/quote', 'stripe/webhook'].includes(path) ? ['POST'] : null;
     if (!allowed) return json({ error: 'Not found.' }, 404);
     if (!allowed.includes(method)) return json({ error: 'Method not allowed.' }, 405, { Allow: allowed.join(', ') });
     if (path === 'stripe/webhook') return await stripeWebhookRoute(request);
-    if (path === 'checkout' || path === 'checkout/session') return await checkoutRoute(request, path);
+    if (path === 'checkout' || path === 'checkout/quote' || path === 'checkout/session') return await checkoutRoute(request, path);
     if (path === 'healthz') return json({ status: 'ok' });
     if (path.startsWith('auth/')) return await customerRoute(request, path.slice(5));
     if (['rates', 'geo'].includes(path)) return await currencyRoute(request, path);

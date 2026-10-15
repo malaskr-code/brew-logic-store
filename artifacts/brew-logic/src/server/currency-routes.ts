@@ -1,12 +1,10 @@
 import 'server-only';
 import type { NextRequest } from 'next/server';
-import { fetchExchangeRates, locateVisitor, resolveVisitorIp } from '@workspace/brew-server/currency-services';
+import { getCachedExchangeRates, locateVisitor, resolveVisitorIp } from '@workspace/brew-server/currency-services';
 import { logger } from '@workspace/brew-server/logger';
 import { json } from './http';
 
 const empty = { countryCode: null, currency: null };
-let cache: { at: number; response: Awaited<ReturnType<typeof fetchExchangeRates>> } | null = null;
-let pending: Promise<Awaited<ReturnType<typeof fetchExchangeRates>>> | null = null;
 
 export async function currencyRoute(request: NextRequest, path: string) {
   if (path === 'geo') {
@@ -17,11 +15,6 @@ export async function currencyRoute(request: NextRequest, path: string) {
     catch { logger.warn('Visitor location request failed'); return json(empty, 503); }
   }
   try {
-    if (cache && Date.now() - cache.at < 86400000) return json(cache.response);
-    if (!pending) pending = fetchExchangeRates().then(response => {
-      cache = { at: Date.now(), response };
-      return response;
-    }).finally(() => { pending = null; });
-    return json(await pending);
+    return json(await getCachedExchangeRates());
   } catch { return new Response(null, { status: 503 }); }
 }

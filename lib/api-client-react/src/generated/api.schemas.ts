@@ -41,6 +41,19 @@ export interface CheckoutLink {
   url: string;
 }
 
+export interface CheckoutConfirmation {
+  /** @pattern ^order_[a-f0-9]{40}$ */
+  quoteId: string;
+}
+
+export interface CheckoutQuote {
+  quoteId: string;
+  amountKwd: number;
+  amountUsd: number;
+  rate: number;
+  expiresAt: string;
+}
+
 export type CheckoutStatusStatus = typeof CheckoutStatusStatus[keyof typeof CheckoutStatusStatus];
 
 
@@ -54,6 +67,7 @@ export interface CheckoutStatus {
   sessionId: string;
   status: CheckoutStatusStatus;
   amountKwd: number;
+  amountUsd: number;
   items: CheckoutLineInput[];
 }
 

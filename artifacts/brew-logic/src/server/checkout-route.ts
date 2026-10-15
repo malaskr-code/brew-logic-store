@@ -1,8 +1,8 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { CreateCheckoutBody, GetCheckoutSessionQueryParams, GetCheckoutSessionResponse, CreateCheckoutResponse } from '@workspace/api-zod';
-import { createTestCheckout, verifyTestCheckout, checkoutHash, CheckoutOrderError } from '@workspace/brew-server/checkout-service';
+import { CreateCheckoutBody, CreateCheckoutQuoteBody, CreateCheckoutQuoteResponse, GetCheckoutSessionQueryParams, GetCheckoutSessionResponse, CreateCheckoutResponse } from '@workspace/api-zod';
+import { createTestQuote, createTestCheckout, verifyTestCheckout, checkoutHash, CheckoutOrderError } from '@workspace/brew-server/checkout-service';
 import { CheckoutInputError } from '@workspace/brew-server/checkout-pricing';
 import { StripeConfigurationError } from '@workspace/brew-server/stripe-client';
 import { logger } from '@workspace/brew-server/logger';
@@ -19,24 +19,32 @@ export async function checkoutRoute(request: NextRequest, path: string) {
   const existing = request.cookies.get(COOKIE)?.value;
   const owner = existing && /^[a-f0-9]{64}$/.test(existing) ? existing : null;
   if (path === 'checkout/session' && !owner) return json({ error: 'Checkout not found.' }, 404);
-  if (path === 'checkout' && !sameOrigin(request)) return json({ error: 'Cross-site changes are not allowed.' }, 403);
+  if (request.method === 'POST' && !sameOrigin(request)) return json({ error: 'Cross-site changes are not allowed.' }, 403);
   const token = owner || randomBytes(32).toString('hex');
   const ownerHash = checkoutHash(token);
   // Parse outside service error handling so malformed JSON keeps its 400/413.
-  const raw = path === 'checkout' ? await readJson(request) : undefined;
+  const raw = request.method === 'POST' ? await readJson(request) : undefined;
   try {
     if (path === 'checkout/session') {
       const parsed = GetCheckoutSessionQueryParams.safeParse({ session_id: request.nextUrl.searchParams.get('session_id') });
       if (!parsed.success) return json({ error: 'Invalid checkout session.' }, 400);
       return json(GetCheckoutSessionResponse.parse(await verifyTestCheckout(parsed.data.session_id, ownerHash)));
     }
-    const parsed = CreateCheckoutBody.strict().safeParse(raw);
+    if (path === 'checkout') {
+      const parsed = CreateCheckoutBody.strict().safeParse(raw);
+      if (!parsed.success) return json({ error: 'A valid checkout quote is required.' }, 400);
+      if (!owner) return json({ error: 'Checkout not found.' }, 404);
+      return setOwnerCookie(json(CreateCheckoutResponse.parse(
+        await createTestCheckout(parsed.data.quoteId, ownerHash),
+      ), 201), token);
+    }
+    const parsed = CreateCheckoutQuoteBody.strict().safeParse(raw);
     if (!parsed.success) return json({ error: 'Check the cart items and quantities.' }, 400);
     const protocol = request.headers.get('x-forwarded-proto')?.split(',')[0].trim() || request.nextUrl.protocol.replace(':', '');
     const origin = new URL(`${protocol}://${requestHost(request)}`).origin;
     if (!['https:', 'http:'].includes(new URL(origin).protocol)) return json({ error: 'Invalid checkout origin.' }, 400);
-    return setOwnerCookie(json(CreateCheckoutResponse.parse(
-      await createTestCheckout(parsed.data, ownerHash, origin),
+    return setOwnerCookie(json(CreateCheckoutQuoteResponse.parse(
+      await createTestQuote(parsed.data, ownerHash, origin),
     ), 201), token);
   } catch (error) {
     if (error instanceof CheckoutInputError) return setOwnerCookie(json({ error: 'An item is unavailable or has an unsupported checkout price.' }, 400), token);

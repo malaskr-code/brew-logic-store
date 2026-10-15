@@ -12,5 +12,6 @@ export interface CheckoutStatus {
   sessionId: string;
   status: CheckoutStatusStatus;
   amountKwd: number;
+  amountUsd: number;
   items: CheckoutLineInput[];
 }
