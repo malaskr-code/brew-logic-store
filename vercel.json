@@ -1,0 +1,45 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "storefront": {
+      "root": "artifacts/brew-logic",
+      "framework": "vite",
+      "installCommand": "npx --yes pnpm@10.26.1 install --frozen-lockfile",
+      "buildCommand": "PORT=3000 BASE_PATH=/ pnpm run build",
+      "outputDirectory": "dist/public",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "api": {
+      "root": "artifacts/api-server",
+      "framework": "express",
+      "entrypoint": "src/app.ts",
+      "installCommand": "npx --yes pnpm@10.26.1 install --frozen-lockfile",
+      "buildCommand": "echo 'Using the Vercel Express entry point'"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/api/:path*",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/:path*",
+      "destination": {
+        "service": "storefront"
+      }
+    }
+  ]
+}
