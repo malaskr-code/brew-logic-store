@@ -5,6 +5,58 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface CheckoutLineInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  id: string;
+  /**
+     * @minimum 1
+     * @maximum 99
+     */
+  quantity: number;
+}
+
+export type CheckoutInputLanguage = typeof CheckoutInputLanguage[keyof typeof CheckoutInputLanguage];
+
+
+export const CheckoutInputLanguage = {
+  en: 'en',
+  ar: 'ar',
+} as const;
+
+export interface CheckoutInput {
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  items: CheckoutLineInput[];
+  requestId: string;
+  language: CheckoutInputLanguage;
+}
+
+export interface CheckoutLink {
+  sessionId: string;
+  url: string;
+}
+
+export type CheckoutStatusStatus = typeof CheckoutStatusStatus[keyof typeof CheckoutStatusStatus];
+
+
+export const CheckoutStatusStatus = {
+  paid: 'paid',
+  pending: 'pending',
+  expired: 'expired',
+} as const;
+
+export interface CheckoutStatus {
+  sessionId: string;
+  status: CheckoutStatusStatus;
+  amountKwd: number;
+  items: CheckoutLineInput[];
+}
+
 export interface CustomerUser {
   id: string;
   name: string;
@@ -235,6 +287,14 @@ export interface ChatReply {
 export interface HealthStatus {
   status: string;
 }
+
+export type GetCheckoutSessionParams = {
+/**
+ * @maxLength 255
+ * @pattern ^cs_test_[A-Za-z0-9]+$
+ */
+session_id: string;
+};
 
 export type GetVisitorGeoParams = {
 testip?: string;

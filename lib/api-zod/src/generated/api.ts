@@ -9,6 +9,68 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Create a test-only Stripe hosted checkout, priced from the live catalog
+ */
+export const createCheckoutBodyItemsItemIdMax = 100;
+
+export const createCheckoutBodyItemsItemQuantityMax = 99;
+
+export const createCheckoutBodyItemsMax = 50;
+
+
+
+export const CreateCheckoutBody = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().min(1).max(createCheckoutBodyItemsItemIdMax),
+  "quantity": zod.number().int().min(1).max(createCheckoutBodyItemsItemQuantityMax)
+})).min(1).max(createCheckoutBodyItemsMax),
+  "requestId": zod.string().uuid(),
+  "language": zod.enum(['en', 'ar'])
+})
+
+export const CreateCheckoutResponse = zod.object({
+  "sessionId": zod.string(),
+  "url": zod.string().url()
+})
+
+
+/**
+ * @summary Verify payment directly with Stripe for the checkout cookie owner
+ */
+export const getCheckoutSessionQuerySessionIdMax = 255;
+
+
+export const getCheckoutSessionQuerySessionIdRegExp = new RegExp('^cs_test_[A-Za-z0-9]+$');
+
+
+export const GetCheckoutSessionQueryParams = zod.object({
+  "session_id": zod.coerce.string().max(getCheckoutSessionQuerySessionIdMax).regex(getCheckoutSessionQuerySessionIdRegExp)
+})
+
+export const getCheckoutSessionResponseItemsItemIdMax = 100;
+
+export const getCheckoutSessionResponseItemsItemQuantityMax = 99;
+
+
+
+export const GetCheckoutSessionResponse = zod.object({
+  "sessionId": zod.string(),
+  "status": zod.enum(['paid', 'pending', 'expired']),
+  "amountKwd": zod.number(),
+  "items": zod.array(zod.object({
+  "id": zod.string().min(1).max(getCheckoutSessionResponseItemsItemIdMax),
+  "quantity": zod.number().int().min(1).max(getCheckoutSessionResponseItemsItemQuantityMax)
+}))
+})
+
+
+/**
+ * @summary Receive raw, signature-verified Stripe events
+ */
+export const ReceiveStripeWebhookResponse = zod.unknown()
+
+
+/**
  * @summary Read all live products
  */
 export const getProductsResponseIdMax = 80;

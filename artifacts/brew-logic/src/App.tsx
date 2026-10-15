@@ -20,6 +20,7 @@ import { CatalogProvider, useCatalog } from '@/lib/catalog';
 import { AdminAuthProvider, SignInPage, SignUpPage } from '@/lib/admin-auth';
 import { CustomerAuthProvider, CustomerLoginPage, CustomerSignupPage, CustomerAccountButton } from '@/lib/customer-auth';
 import AdminPage from '@/screens/admin';
+import { useCheckout, type CheckoutState } from '@/lib/checkout';
 
 type Language = 'en' | 'ar';
 type CartItem = { id: string; name: string; price: number; image: string; quantity: number; isBundle?: boolean };
@@ -74,7 +75,7 @@ const copy = {
     shop: 'Shop', sayHello: 'Say hello', follow: 'Follow along', email: 'hello@brewlogic.com',
     rights: '© 2025 Brew Logic · Kuwait', crafted: 'Engineer your cup',
     cart: 'Your cart', emptyTitle: 'Nothing brewing yet.', emptyText: 'Your next good cup starts with a tool or a bag of beans.', startShopping: 'Explore the collection',
-    subtotal: 'Total', checkout: 'Continue to checkout', checkoutNote: 'Checkout is a demo — no payment will be taken.',
+    subtotal: 'Total', checkout: 'Continue to checkout', checkoutNote: 'Stripe test checkout — no real money will be charged.',
     remove: 'Remove', added: 'Added to your cart', bundleAdded: 'Bundle added to your cart',
     close: 'Close', quantity: 'Quantity', productDetails: 'Product details', roasted: 'Roasted in Kuwait by Brew Logic',
     themeLight: 'Switch to light theme', themeDark: 'Switch to dark theme', language: 'العربية', menu: 'Open menu',
@@ -116,7 +117,7 @@ const copy = {
     shop: 'تسوّق', sayHello: 'تواصل معنا', follow: 'تابعنا', email: 'hello@brewlogic.com',
     rights: '© ٢٠٢٥ Brew Logic · الكويت', crafted: 'أتقن قهوتك',
     cart: 'سلتك', emptyTitle: 'لا شيء في السلة بعد.', emptyText: 'فنجانك القادم يبدأ بأداة أو كيس من البن.', startShopping: 'اكتشف المجموعة',
-    subtotal: 'الإجمالي', checkout: 'متابعة إلى إتمام الطلب', checkoutNote: 'هذه تجربة فقط — لن يتم تحصيل أي مبلغ.',
+    subtotal: 'الإجمالي', checkout: 'متابعة إلى إتمام الطلب', checkoutNote: 'دفع تجريبي عبر Stripe — لن يتم تحصيل أي مبلغ حقيقي.',
     remove: 'إزالة', added: 'أُضيف إلى سلتك', bundleAdded: 'أُضيفت المجموعة إلى سلتك',
     close: 'إغلاق', quantity: 'الكمية', productDetails: 'تفاصيل المنتج', roasted: 'تحميص Brew Logic في الكويت',
     themeLight: 'التبديل إلى المظهر الفاتح', themeDark: 'التبديل إلى المظهر الداكن', language: 'English', menu: 'فتح القائمة',
@@ -533,8 +534,8 @@ function OriginSection({ t }: { t: typeof copy.en }) {
   </section>;
 }
 
-function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }: {
-  open: boolean; close: () => void; items: CartItem[]; t: typeof copy.en; onQuantity: (id: string, delta: number) => void; onRemove: (id: string) => void; onCheckout: () => void;
+function CartDrawer({ open, close, items, t, onQuantity, onRemove, checkout }: {
+  open: boolean; close: () => void; items: CartItem[]; t: typeof copy.en; onQuantity: (id: string, delta: number) => void; onRemove: (id: string) => void; checkout: CheckoutState;
 }) {
   const { money, currency } = useCurrency();
   useEffect(() => {
@@ -548,6 +549,10 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }:
     <div className={`drawer-backdrop${open ? ' open' : ''}`} onClick={close} aria-hidden={!open}/>
     <aside className={`cart-drawer${open ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label={t.cart}>
       <div className="drawer-head"><h2>{t.cart} <span style={{fontSize:14,opacity:.55}}>({items.reduce((n, x) => n + x.quantity, 0)})</span></h2><button className="icon-button" onClick={close} aria-label={t.close} data-testid="button-close-cart"><X size={17}/></button></div>
+      {checkout.message && <div className="cart-summary" role={checkout.isError ? 'alert' : 'status'} data-testid="status-checkout">
+        <p className="checkout-note">{checkout.message}</p>
+        {checkout.canRetry && <button className="add-button" onClick={() => void checkout.verify()} data-testid="button-verify-payment">{checkout.retryText}</button>}
+      </div>}
       {currency !== 'KWD' && <p className="currency-note" data-testid="text-currency-note">{t.currencyNote}</p>}
       {items.length === 0 ? <div className="empty-cart"><div><ShoppingBag size={26} strokeWidth={1.2}/><h3>{t.emptyTitle}</h3><p>{t.emptyText}</p><button className="primary-button" onClick={close} data-testid="button-empty-shopping">{t.startShopping}<ArrowRight size={14}/></button></div></div> : <>
         <div className="cart-items">{items.map(item => <article className="cart-row" key={item.id} data-testid={`row-cart-${item.id}`}>
@@ -556,7 +561,7 @@ function CartDrawer({ open, close, items, t, onQuantity, onRemove, onCheckout }:
             <button onClick={() => onQuantity(item.id, -1)} aria-label={`Decrease ${item.name} quantity`} data-testid={`button-decrease-${item.id}`}>−</button><span data-testid={`text-quantity-${item.id}`}>{item.quantity}</span><button onClick={() => onQuantity(item.id, 1)} aria-label={`Increase ${item.name} quantity`} data-testid={`button-increase-${item.id}`}>+</button>
           </div></div><button className="remove-button" onClick={() => onRemove(item.id)} data-testid={`button-remove-${item.id}`}>{t.remove}</button>
         </article>)}</div>
-        <div className="cart-summary"><div className="total-line"><span>{t.subtotal}</span><span data-testid="text-cart-total">{money(total)}</span></div><button className="primary-button checkout" onClick={onCheckout} data-testid="button-checkout">{t.checkout}<ArrowRight size={15}/></button><p className="checkout-note">{t.checkoutNote}</p></div>
+        <div className="cart-summary"><div className="total-line"><span>{t.subtotal}</span><span data-testid="text-cart-total">{money(total)}</span></div><button className="primary-button checkout" onClick={() => void checkout.start()} disabled={checkout.busy} aria-busy={checkout.busy} data-testid="button-checkout">{checkout.buttonText || t.checkout}<ArrowRight size={15}/></button><p className="checkout-note">{t.checkoutNote}</p></div>
       </>}
     </aside>
   </>;
@@ -684,6 +689,23 @@ function Storefront() {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'machine' | 'bean'>('all');
   const [toast, setToast] = useState('');
+  const checkout = useCheckout(cart, language, receipt => {
+    let completed: string[] = [];
+    try {
+      const stored: unknown = JSON.parse(localStorage.getItem('brew-checkout-receipts') || '[]');
+      if (Array.isArray(stored)) completed = stored.filter((id): id is string => typeof id === 'string');
+    } catch { /* corrupted receipt storage must not crash the store */ }
+    if (completed.includes(receipt.sessionId)) return;
+    const next = cart.flatMap(item => {
+      const purchased = receipt.items.find(line => line.id === item.id)?.quantity || 0;
+      return item.quantity > purchased ? [{ ...item, quantity: item.quantity - purchased }] : [];
+    });
+    // No storage effects inside a React state updater (Strict Mode repeats it).
+    localStorage.setItem('brew-cart', JSON.stringify(next));
+    localStorage.setItem('brew-checkout-receipts', JSON.stringify([...completed.slice(-99), receipt.sessionId]));
+    setCart(next);
+  });
+  useEffect(() => { if (checkout.returned) setCartOpen(true); }, [checkout.returned]);
   const t = copy[language];
   const isDetailRoute = location.startsWith('/product/');
   const detailId = isDetailRoute ? location.slice('/product/'.length) : '';
@@ -800,7 +822,7 @@ function Storefront() {
     <Footer t={t}/>
     <ChatWidget language={language} onNavigate={rememberDetailReturn}/>
     <a className="whatsapp" href="https://wa.me/96598858879" target="_blank" rel="noreferrer" aria-label="Contact Brew Logic on WhatsApp" data-testid="link-floating-whatsapp"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L3 20l1.2-4.8A8.2 8.2 0 1 1 20.2 11.7Z" stroke="currentColor" strokeWidth="1.6"/><path d="M8.2 8.1c.3-.5.5-.5.8-.5h.5c.2 0 .4.1.5.5l.7 1.7c.1.3 0 .5-.2.7l-.5.6c-.2.2-.2.4-.1.6.4.8 1.3 1.6 2.2 2 .2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .3-.2 1.2-.8 1.5-.6.4-1.3.5-2.1.3-.8-.2-1.9-.7-3.1-1.8-1.2-1.1-2-2.4-2.2-3.3-.2-.9 0-1.6.3-2.1Z" fill="currentColor"/></svg></a>
-    <CartDrawer open={cartOpen} close={() => setCartOpen(false)} items={cart} t={t} onQuantity={adjustQuantity} onRemove={removeItem} onCheckout={() => setToast(t.checkoutSuccess)}/>
+    <CartDrawer open={cartOpen} close={() => setCartOpen(false)} items={cart} t={t} onQuantity={adjustQuantity} onRemove={removeItem} checkout={checkout}/>
     <FavoritesDrawer open={favoritesOpen} close={() => setFavoritesOpen(false)} items={favoriteItems} t={t} onAdd={addItem} onRemove={id => setFavoriteIds(old => old.filter(itemId => itemId !== id))}/>
     <div className={`toast-message${toast ? ' show' : ''}`} role="status" aria-live="polite" data-testid="status-toast">{toast}</div>
   </div>;

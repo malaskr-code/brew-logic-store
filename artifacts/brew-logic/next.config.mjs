@@ -11,7 +11,7 @@ export default {
     '@workspace/brew-catalog',
     '@workspace/brew-server',
   ],
-  serverExternalPackages: ['pino', 'pino-pretty', 'mongodb', 'bcryptjs', 'jsonwebtoken'],
+  serverExternalPackages: ['pino', 'pino-pretty', 'mongodb', 'bcryptjs', 'jsonwebtoken', 'stripe', 'stripe-replit-sync', 'pg'],
   // Only publishable Clerk configuration is exposed to client components.
   env: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:

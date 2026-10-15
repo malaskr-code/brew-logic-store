@@ -11,6 +11,52 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /checkout:
+    post:
+      operationId: createCheckout
+      summary: Create a test-only Stripe hosted checkout, priced from the live catalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CheckoutInput" }
+      responses:
+        "201":
+          description: Test checkout created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutLink" }
+        "400": { description: Invalid cart }
+        "403": { description: Cross-site request }
+        "409": { description: Cart or previous checkout changed }
+        "429": { description: Too many checkout attempts }
+        "503": { description: Test checkout unavailable }
+  /checkout/session:
+    get:
+      operationId: getCheckoutSession
+      summary: Verify payment directly with Stripe for the checkout cookie owner
+      parameters:
+        - in: query
+          name: session_id
+          required: true
+          schema: { type: string, pattern: "^cs_test_[A-Za-z0-9]+$", maxLength: 255 }
+      responses:
+        "200":
+          description: Verified payment status; never inferred from the return URL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CheckoutStatus" }
+        "400": { description: Invalid session }
+        "404": { description: Checkout not found for this visitor }
+        "503": { description: Payment verification unavailable }
+  /stripe/webhook:
+    post:
+      operationId: receiveStripeWebhook
+      summary: Receive raw, signature-verified Stripe events
+      responses:
+        "200": { description: Event processed }
+        "400": { description: Invalid payload or signature }
+        "503": { description: Synchronization unavailable; Stripe should retry }
   /products:
     get:
       operationId: getProducts
@@ -312,6 +358,41 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    CheckoutLineInput:
+      type: object
+      additionalProperties: false
+      required: [id, quantity]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 100 }
+        quantity: { type: integer, minimum: 1, maximum: 99 }
+    CheckoutInput:
+      type: object
+      additionalProperties: false
+      required: [items, requestId, language]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/CheckoutLineInput" }
+        requestId: { type: string, format: uuid }
+        language: { type: string, enum: [en, ar] }
+    CheckoutLink:
+      type: object
+      required: [sessionId, url]
+      properties:
+        sessionId: { type: string }
+        url: { type: string, format: uri }
+    CheckoutStatus:
+      type: object
+      required: [sessionId, status, amountKwd, items]
+      properties:
+        sessionId: { type: string }
+        status: { type: string, enum: [paid, pending, expired] }
+        amountKwd: { type: number }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CheckoutLineInput" }
     CustomerUser:
       type: object
       required: [id, name, email, createdAt]

@@ -2,3 +2,4 @@
 - [Catalog management](catalog-management.md) — The user chose MongoDB and a private admin editor for products and bundles.
 - [Account boundaries](account-boundaries.md) — MongoDB/JWT customer accounts remain separate from verified Clerk owner access.
 - [Preview compatibility](preview-compatibility.md) — A local screenshot can pass while host-restricted framework loaders fail on the actual proxied preview.
+- [Payment currencies](payment-currency-compatibility.md) — Check account-specific currency support; never silently change the checkout currency.

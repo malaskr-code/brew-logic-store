@@ -6,6 +6,7 @@ import { catalogRoute } from '@/server/catalog-routes';
 import { currencyRoute } from '@/server/currency-routes';
 import { chatRoute } from '@/server/chat-route';
 import { clerkProxy } from '@/server/clerk-proxy';
+import { checkoutRoute, stripeWebhookRoute } from '@/server/checkout-route';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,13 +16,15 @@ async function handle(request: NextRequest) {
   const method = request.method;
   try {
     if (path === '__clerk' || path.startsWith('__clerk/')) return await clerkProxy(request);
-    const allowed = path === 'healthz' || ['products', 'bundles', 'catalog', 'rates', 'geo', 'auth/me'].includes(path)
+    const allowed = path === 'healthz' || ['products', 'bundles', 'catalog', 'rates', 'geo', 'auth/me', 'checkout/session'].includes(path)
       ? ['GET', 'HEAD']
       : path === 'admin/catalog' ? ['GET', 'HEAD', 'POST']
       : /^admin\/catalog\/[^/]+$/.test(path) ? ['PUT', 'DELETE']
-      : ['chat', 'auth/signup', 'auth/login', 'auth/logout'].includes(path) ? ['POST'] : null;
+      : ['chat', 'auth/signup', 'auth/login', 'auth/logout', 'checkout', 'stripe/webhook'].includes(path) ? ['POST'] : null;
     if (!allowed) return json({ error: 'Not found.' }, 404);
     if (!allowed.includes(method)) return json({ error: 'Method not allowed.' }, 405, { Allow: allowed.join(', ') });
+    if (path === 'stripe/webhook') return await stripeWebhookRoute(request);
+    if (path === 'checkout' || path === 'checkout/session') return await checkoutRoute(request, path);
     if (path === 'healthz') return json({ status: 'ok' });
     if (path.startsWith('auth/')) return await customerRoute(request, path.slice(5));
     if (['rates', 'geo'].includes(path)) return await currencyRoute(request, path);
